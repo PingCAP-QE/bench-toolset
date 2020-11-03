@@ -1,0 +1,40 @@
+package metrics
+
+import (
+	"math"
+	"time"
+)
+
+type JitterResult struct {
+	Sd  float64
+	Max float64
+}
+
+func (m *Metrics) Jitter(query string) (*JitterResult, error) {
+	val, err := m.source.Query(query, m.start, m.end, time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	values := ValuesToFloatArray(val)
+	sum := float64(0)
+	count := float64(len(values))
+	for _, v := range values {
+		sum += v
+	}
+	avg := sum / count
+	jitterSum := float64(0)
+	jitterMax := float64(0)
+	for _, v := range values {
+		jitter := math.Abs(v - avg)
+		if jitter > jitterMax {
+			jitterMax = jitter
+		}
+		jitterSum += math.Pow(jitter, 2)
+	}
+
+	return &JitterResult{
+		Sd:  math.Sqrt(jitterSum / count),
+		Max: jitterMax,
+	}, nil
+}
