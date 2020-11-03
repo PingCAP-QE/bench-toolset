@@ -48,6 +48,7 @@ type Workload struct {
 	DockerImage string   `json:"docker_image"`
 	RestorePath string   `json:"restore_path"`
 	Cmd         string   `json:"cmd"`
+	ArtifactDir string   `json:"artifact_dir"`
 	Args        []string `json:"args"`
 }
 
