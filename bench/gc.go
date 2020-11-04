@@ -16,13 +16,17 @@ type GcBench struct {
 
 func NewGcBench(load workload.Workload) *GcBench {
 	return &GcBench{
-		load:  load,
-		start: time.Now(),
+		load: load,
 	}
 }
 
 func (b *GcBench) Run() error {
-	err := b.load.Start()
+	err := b.load.Prepare()
+	if err != nil {
+		return err
+	}
+	b.start = time.Now()
+	err = b.load.Start()
 	if err != nil {
 		return err
 	}

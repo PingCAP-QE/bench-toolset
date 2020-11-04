@@ -29,10 +29,12 @@ func NewMetricsCommand() *cobra.Command {
 		Short: "Query metrics from Prometheus",
 	}
 
+	command.AddCommand(newJitterCommand())
+
 	return command
 }
 
-func NewJitterCommand() *cobra.Command {
+func newJitterCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "metrics",
 		Short: "Query metrics from Prometheus",

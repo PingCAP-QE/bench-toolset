@@ -15,6 +15,7 @@ type Record struct {
 }
 
 type Workload interface {
+	Prepare() error
 	Start() error
 	Records() ([]*Record, error)
 }

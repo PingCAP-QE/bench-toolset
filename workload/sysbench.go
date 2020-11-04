@@ -30,19 +30,16 @@ type Sysbench struct {
 	LogPath        string
 }
 
+func (s *Sysbench) Prepare() error {
+	args := s.buildArgs()
+	args = append(args, "prepare")
+	cmd := exec.Command("sysbench", args...)
+	return cmd.Run()
+}
+
 func (s *Sysbench) Start() error {
-	args := []string{
-		s.Name,
-		"--mysql-host=" + s.Host,
-		"--mysql-user=" + s.User,
-		"--mysql-port=" + fmt.Sprintf("%d", s.Port),
-		"--tables=" + fmt.Sprintf("%d", s.Tables),
-		"--table-size=" + fmt.Sprintf("%d", s.TableSize),
-		"--threads=" + fmt.Sprintf("%d", s.Threads),
-		"--time" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
-		"--report-interval" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
-		"--percentile=99%",
-	}
+	args := s.buildArgs()
+	args = append(args, "run")
 	cmd := exec.Command("sysbench", args...)
 	if len(s.LogPath) > 0 {
 		logFile, err := os.OpenFile(s.LogPath, os.O_CREATE|os.O_RDWR, 0644)
@@ -88,4 +85,19 @@ func (s *Sysbench) parseLogFile() ([]*Record, error) {
 	}
 
 	return records, nil
+}
+
+func (s *Sysbench) buildArgs() []string {
+	return []string{
+		s.Name,
+		"--mysql-host=" + s.Host,
+		"--mysql-user=" + s.User,
+		"--mysql-port=" + fmt.Sprintf("%d", s.Port),
+		"--tables=" + fmt.Sprintf("%d", s.Tables),
+		"--table-size=" + fmt.Sprintf("%d", s.TableSize),
+		"--threads=" + fmt.Sprintf("%d", s.Threads),
+		"--time" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
+		"--report-interval" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
+		"--percentile=99%",
+	}
 }
