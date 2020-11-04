@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/pingcap/errors"
 )
 
 var (
@@ -34,7 +36,7 @@ func (s *Sysbench) Prepare() error {
 	args := s.buildArgs()
 	args = append(args, "prepare")
 	cmd := exec.Command("sysbench", args...)
-	return cmd.Run()
+	return errors.Wrapf(cmd.Run(), "Sysbench prepare failed: args %v", cmd.Args)
 }
 
 func (s *Sysbench) Start() error {
@@ -49,7 +51,7 @@ func (s *Sysbench) Start() error {
 		cmd.Stdout = logFile
 		cmd.Stderr = logFile
 	}
-	return cmd.Run()
+	return errors.Wrapf(cmd.Run(), "Sysbench run failed: args %v", cmd.Args)
 }
 
 func (s *Sysbench) Records() ([]*Record, error) {
@@ -66,15 +68,15 @@ func (s *Sysbench) parseLogFile() ([]*Record, error) {
 	for i, matched := range matchedRecords {
 		threads, err := strconv.ParseFloat(string(matched[1]), 64)
 		if err != nil {
-			return nil, err
+			return nil, errors.AddStack(err)
 		}
 		tps, err := strconv.ParseFloat(string(matched[2]), 64)
 		if err != nil {
-			return nil, err
+			return nil, errors.AddStack(err)
 		}
 		p99Lat, err := strconv.ParseFloat(string(matched[3]), 64)
 		if err != nil {
-			return nil, err
+			return nil, errors.AddStack(err)
 		}
 		avgLat := 1000 / tps * threads
 		records[i] = &Record{
@@ -92,12 +94,13 @@ func (s *Sysbench) buildArgs() []string {
 		s.Name,
 		"--mysql-host=" + s.Host,
 		"--mysql-user=" + s.User,
+		"--mysql-db=" + s.Db,
 		"--mysql-port=" + fmt.Sprintf("%d", s.Port),
 		"--tables=" + fmt.Sprintf("%d", s.Tables),
 		"--table-size=" + fmt.Sprintf("%d", s.TableSize),
 		"--threads=" + fmt.Sprintf("%d", s.Threads),
-		"--time" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
-		"--report-interval" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
-		"--percentile=99%",
+		"--time=" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
+		"--report-interval=10",
+		"--percentile=99",
 	}
 }
