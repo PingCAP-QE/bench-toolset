@@ -2,5 +2,5 @@ package bench
 
 type Benchmark interface {
 	Run() error
-	Report() string
+	Report() (string, error)
 }

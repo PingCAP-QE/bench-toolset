@@ -15,8 +15,11 @@ func (m *Metrics) Jitter(query string) (*JitterResult, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	values := ValuesToFloatArray(val)
+	return m.CalculateJitter(values), nil
+}
+
+func (m *Metrics) CalculateJitter(values []float64) *JitterResult {
 	sum := float64(0)
 	count := float64(len(values))
 	for _, v := range values {
@@ -32,9 +35,8 @@ func (m *Metrics) Jitter(query string) (*JitterResult, error) {
 		}
 		jitterSum += math.Pow(jitter, 2)
 	}
-
 	return &JitterResult{
 		Sd:  math.Sqrt(jitterSum / count),
 		Max: jitterMax,
-	}, nil
+	}
 }

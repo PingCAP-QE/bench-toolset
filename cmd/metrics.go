@@ -15,14 +15,19 @@ var (
 	interval time.Duration
 )
 
+func init() {
+	metricsCmd := NewMetricsCommand()
+	metricsCmd.PersistentFlags().StringVarP(&address, "address", "u", "", "The host of Prometheus")
+	metricsCmd.PersistentFlags().StringVarP(&query, "query", "q", "", "Query of metrics")
+
+	rootCmd.AddCommand(metricsCmd)
+}
+
 func NewMetricsCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "metrics",
 		Short: "Query metrics from Prometheus",
 	}
-
-	command.PersistentFlags().StringVarP(&address, "address", "u", "", "The host of Prometheus")
-	command.PersistentFlags().StringVarP(&query, "query", "q", "", "Query of metrics")
 
 	return command
 }
@@ -48,6 +53,6 @@ func NewJitterCommand() *cobra.Command {
 		},
 	}
 
-	command.PersistentFlags().DurationVarP(&interval, "time", "t", time.Minute*10, "Time of fetching metrics")
+	command.PersistentFlags().DurationVar(&interval, "time", time.Minute*10, "Time of fetching metrics")
 	return command
 }

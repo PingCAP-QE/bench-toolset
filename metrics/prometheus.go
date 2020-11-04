@@ -82,7 +82,7 @@ func ValuesToFloatArray(val model.Value) []float64 {
 			values[i] = float64(sample.Value)
 		}
 	case model.ValScalar:
-		values = []float64{float64(val.(model.Scalar).Value)}
+		values = []float64{float64(val.(*model.Scalar).Value)}
 	case model.ValMatrix:
 		for _, stream := range val.(model.Matrix) {
 			for _, sample := range stream.Values {
