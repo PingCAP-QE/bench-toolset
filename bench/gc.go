@@ -46,8 +46,8 @@ func (b *GcBench) Report() (string, error) {
 
 	for i, r := range records {
 		counts[i] = r.Count
-		avgLats[i] = r.Latency.Avg
-		p99Lats[i] = r.Latency.P99
+		avgLats[i] = r.Latency.AvgInMs
+		p99Lats[i] = r.Latency.P99InMs
 	}
 
 	countJitter := m.CalculateJitter(counts)

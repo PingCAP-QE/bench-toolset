@@ -3,8 +3,8 @@ package workload
 import "time"
 
 type Latency struct {
-	Avg float64
-	P99 float64
+	AvgInMs float64
+	P99InMs float64
 }
 
 type Record struct {

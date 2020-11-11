@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	recordRegexp = regexp.MustCompile(`\[\s\d+s\s\]\sthds:\s(\d+)\stps:\s([\d\.]+)\sqps:\s([\d\.]+)\s[\(\)\w/:\s\d\.]+\slat\s\(ms,99%\):\s([\d\.]+)`)
+	sysbenchRecordRegexp = regexp.MustCompile(`\[\s\d+s\s\]\sthds:\s(\d+)\stps:\s([\d\.]+)\sqps:\s([\d\.]+)\s[\(\)\w/:\s\d\.]+\slat\s\(ms,99%\):\s([\d\.]+)`)
 )
 
 type Sysbench struct {
@@ -63,7 +63,7 @@ func (s *Sysbench) parseLogFile() ([]*Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	matchedRecords := recordRegexp.FindAllSubmatch(content, -1)
+	matchedRecords := sysbenchRecordRegexp.FindAllSubmatch(content, -1)
 	records := make([]*Record, len(matchedRecords))
 	for i, matched := range matchedRecords {
 		threads, err := strconv.ParseFloat(string(matched[1]), 64)
@@ -81,7 +81,7 @@ func (s *Sysbench) parseLogFile() ([]*Record, error) {
 		avgLat := 1000 / tps * threads
 		records[i] = &Record{
 			Count:   tps,
-			Latency: &Latency{Avg: avgLat, P99: p99Lat},
+			Latency: &Latency{AvgInMs: avgLat, P99InMs: p99Lat},
 			Time:    time.Second,
 		}
 	}
