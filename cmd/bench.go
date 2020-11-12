@@ -2,13 +2,14 @@ package cmd
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/5kbpers/stability_bench/bench"
 	"github.com/5kbpers/stability_bench/workload"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/pingcap/log"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 var (
@@ -28,36 +29,37 @@ var (
 )
 
 func init() {
-	workloadCmd := NewWorkloadCommand()
+	benchCmd := NewBenchCommand()
 
-	workloadCmd.PersistentFlags().StringVar(&host, "host", "localhost", "host of tidb cluster")
-	workloadCmd.PersistentFlags().StringVar(&user, "user", "root", "username of tidb cluster")
-	workloadCmd.PersistentFlags().StringVar(&db, "db", "test", "database of tidb cluster")
-	workloadCmd.PersistentFlags().StringVar(&logPath, "log", "", "log path of workload")
-	workloadCmd.PersistentFlags().Uint64Var(&port, "port", 4000, "port of tidb cluster")
-	workloadCmd.PersistentFlags().Uint64Var(&threads, "threads", 16, "port of tidb cluster")
-	workloadCmd.PersistentFlags().StringVar(&recordDbDsn, "record-dsn", "", "Dsn of database for storing test record")
+	benchCmd.PersistentFlags().StringVar(&host, "host", "localhost", "host of tidb cluster")
+	benchCmd.PersistentFlags().StringVar(&user, "user", "root", "username of tidb cluster")
+	benchCmd.PersistentFlags().StringVar(&db, "db", "test", "database of tidb cluster")
+	benchCmd.PersistentFlags().StringVar(&logPath, "log", "", "log path of workload")
+	benchCmd.PersistentFlags().Uint64Var(&port, "port", 4000, "port of tidb cluster")
+	benchCmd.PersistentFlags().Uint64Var(&threads, "threads", 16, "port of tidb cluster")
+	benchCmd.PersistentFlags().StringVar(&recordDbDsn, "record-dsn", "", "Dsn of database for storing test record")
 
-	rootCmd.AddCommand(workloadCmd)
+	rootCmd.AddCommand(benchCmd)
 }
 
-func NewWorkloadCommand() *cobra.Command {
+func NewBenchCommand() *cobra.Command {
 	command := &cobra.Command{
-		Use:   "workload",
-		Short: "Run workloads for stability test",
+		Use:   "bench",
+		Short: "Run benchmarks for stability test",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			var err error
+			log.Info("Connect to record database...", zap.String("dsn", recordDbDsn))
 			recordDb, err = sql.Open("mysql", recordDbDsn)
 			return err
 		},
 	}
 
-	command.AddCommand(newGcWorkloadCommand())
+	command.AddCommand(newGcBenchCommand())
 
 	return command
 }
 
-func newGcWorkloadCommand() *cobra.Command {
+func newGcBenchCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "gc",
 		Short: "Run GC workload",
@@ -65,6 +67,7 @@ func newGcWorkloadCommand() *cobra.Command {
 			var err error
 			var benchId int64
 			if recordDb != nil {
+				log.Info("Create a record for this benchmark...")
 				var rs sql.Result
 				rs, err = recordDb.Exec(`INSERT INTO bench_info ("name") VALUES ("gc")`)
 				if err != nil {
@@ -90,6 +93,12 @@ func newGcWorkloadCommand() *cobra.Command {
 				LogPath:        logPath,
 			}
 			b := bench.NewGcBench(load)
+			log.Info("Prepare benchmark...")
+			err = b.Prepare()
+			if err != nil {
+				return err
+			}
+			log.Info("Start to run benchmark...")
 			err = b.Run()
 			if err != nil {
 				return err
@@ -98,8 +107,7 @@ func newGcWorkloadCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println(results)
-
+			log.Info("Benchmark done, save results to record database...", zap.Reflect("results", results))
 			if recordDb != nil {
 				for _, rs := range results {
 					_, err = recordDb.Exec("INSERT INTO bench_record values (?, ?, ?)", benchId, rs.Name, rs.Value)
