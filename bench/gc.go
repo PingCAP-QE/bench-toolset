@@ -1,7 +1,7 @@
 package bench
 
 import (
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/5kbpers/stability_bench/metrics"
@@ -20,13 +20,13 @@ func NewGcBench(load workload.Workload) *GcBench {
 	}
 }
 
+func (b *GcBench) Prepare() error {
+	return b.load.Prepare()
+}
+
 func (b *GcBench) Run() error {
-	err := b.load.Prepare()
-	if err != nil {
-		return err
-	}
 	b.start = time.Now()
-	err = b.load.Start()
+	err := b.load.Start()
 	if err != nil {
 		return err
 	}
@@ -34,10 +34,10 @@ func (b *GcBench) Run() error {
 	return nil
 }
 
-func (b *GcBench) Report() (string, error) {
+func (b *GcBench) Results() ([]*Result, error) {
 	records, err := b.load.Records()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	m := metrics.NewMetrics(nil, b.start, b.end)
 	counts := make([]float64, len(records))
@@ -54,9 +54,14 @@ func (b *GcBench) Report() (string, error) {
 	avgLatJitter := m.CalculateJitter(avgLats)
 	p99LatJitter := m.CalculateJitter(p99Lats)
 
-	countRes := fmt.Sprintf("tps jitter-sd %.2f, jitter-max %.2f\n", countJitter.Sd, countJitter.Max)
-	avgLatRes := fmt.Sprintf("avg_lat jitter-sd %.2f, jitter-max %.2f\n", avgLatJitter.Sd, avgLatJitter.Max)
-	p99LatRes := fmt.Sprintf("p99_lat jitter-sd %.2f, jitter-max %.2f\n", p99LatJitter.Sd, p99LatJitter.Max)
+	return []*Result{
+		{"tps-jitter-sd", strconv.FormatFloat(countJitter.Sd, 'f', 2, 64)},
+		{"tps-jitter-max", strconv.FormatFloat(countJitter.Max, 'f', 2, 64)},
 
-	return countRes + avgLatRes + p99LatRes, nil
+		{"avg-lat-jitter-sd", strconv.FormatFloat(avgLatJitter.Sd, 'f', 2, 64)},
+		{"avg-lat-jitter-max", strconv.FormatFloat(avgLatJitter.Max, 'f', 2, 64)},
+
+		{"p99-lat-jitter-sd", strconv.FormatFloat(p99LatJitter.Sd, 'f', 2, 64)},
+		{"p99-lat-jitter-max", strconv.FormatFloat(p99LatJitter.Max, 'f', 2, 64)},
+	}, nil
 }

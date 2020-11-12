@@ -1,6 +1,12 @@
 package bench
 
 type Benchmark interface {
+	Prepare() error
 	Run() error
-	Report() (string, error)
+	Results() ([]*Result, error)
+}
+
+type Result struct {
+	Name  string
+	Value string
 }
