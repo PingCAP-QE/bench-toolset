@@ -62,7 +62,7 @@ func newGcBenchCommand() *cobra.Command {
 			var err error
 			var benchId int64
 			if len(recordDbDsn) != 0 {
-				config ,err := mysql.ParseDSN(recordDbDsn)
+				config, err := mysql.ParseDSN(recordDbDsn)
 				if err != nil {
 					return errors.Trace(err)
 				}
