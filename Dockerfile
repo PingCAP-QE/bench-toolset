@@ -46,5 +46,6 @@ FROM severalnines/sysbench:latest
 COPY --from=builder /src/bin/* /bin/
 COPY --from=tpcbuilder /go/src/github.com/pingcap/go-tpc/bin/* /bin/
 COPY --from=ycsbbuilder /go/src/github.com/pingcap/go-ycsb/bin/* /bin/
+ENV PATH="$PATH:/bin"
 
 CMD ["/bin/stability_bench"]
