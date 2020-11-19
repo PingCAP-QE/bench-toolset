@@ -7,6 +7,7 @@ type Benchmark interface {
 }
 
 type Result struct {
+	Type  string
 	Name  string
 	Value string
 }

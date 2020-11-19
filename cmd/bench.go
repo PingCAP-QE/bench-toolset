@@ -52,12 +52,12 @@ func NewBenchCommand() *cobra.Command {
 		Short: "Run benchmarks for stability test",
 	}
 
-	command.AddCommand(newGcCommand())
+	command.AddCommand(newTpccCommand())
 
 	return command
 }
 
-func newGcCommand() *cobra.Command {
+func newTpccCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "tpcc",
 		Short: "Run Tpc-C workload",
@@ -120,7 +120,7 @@ func newGcCommand() *cobra.Command {
 			log.Info("Benchmark done, save results to record database...", zap.Reflect("results", results))
 			if recordDb != nil {
 				for _, rs := range results {
-					_, err = recordDb.Exec("INSERT INTO bench_result values (?, ?, ?)", benchId, rs.Name, rs.Value)
+					_, err = recordDb.Exec("INSERT INTO bench_result values (?, ?, ?, ?)", benchId, rs.Name, rs.Value, rs.Type)
 					if err != nil {
 						return errors.Trace(err)
 					}

@@ -90,7 +90,7 @@ func (t *Tpcc) buildArgs() []string {
 		"--host=" + t.Host,
 		"--port=" + fmt.Sprintf("%d", t.Port),
 		"--user=" + t.User,
-		"--time" + t.Time.String(),
-		"--db" + t.Db,
+		"--time=" + t.Time.String(),
+		"--db=" + t.Db,
 	}
 }
