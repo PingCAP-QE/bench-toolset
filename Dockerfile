@@ -48,4 +48,4 @@ COPY --from=tpcbuilder /go/src/github.com/pingcap/go-tpc/bin/* /bin/
 COPY --from=ycsbbuilder /go/src/github.com/pingcap/go-ycsb/bin/* /bin/
 ENV PATH="$PATH:/bin"
 
-CMD ["/bin/stability_bench"]
+CMD ["/bin/stability_test"]
