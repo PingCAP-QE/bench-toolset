@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"fmt"
 	"math"
 	"time"
 )
@@ -12,10 +13,12 @@ type JitterResult struct {
 
 func (m *Metrics) Jitter(query string) (*JitterResult, error) {
 	val, err := m.source.Query(query, m.start, m.end, time.Second)
+	fmt.Println(val)
 	if err != nil {
 		return nil, err
 	}
 	values := ValuesToFloatArray(val)
+	fmt.Println(values)
 	return m.CalculateJitter(values), nil
 }
 
@@ -36,7 +39,7 @@ func (m *Metrics) CalculateJitter(values []float64) *JitterResult {
 		powDeltaSum += math.Pow(jitter, 2)
 	}
 	return &JitterResult{
-		Sd:  math.Sqrt(powDeltaSum / count) / avg,
+		Sd:  math.Sqrt(powDeltaSum/count) / avg,
 		Max: jitterMax,
 	}
 }

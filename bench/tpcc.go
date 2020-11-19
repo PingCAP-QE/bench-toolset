@@ -41,7 +41,7 @@ func (b *TpccBench) Results() ([]*Result, error) {
 	}
 	m := metrics.NewMetrics(nil, b.start, b.end)
 	countsMap := make(map[string][]float64)
-	avgLatsMap :=make(map[string][]float64)
+	avgLatsMap := make(map[string][]float64)
 	p99LatsMap := make(map[string][]float64)
 
 	for _, r := range records {
@@ -67,7 +67,7 @@ func (b *TpccBench) Results() ([]*Result, error) {
 		p99LatsMap[r.Type] = append(p99Lats, r.Latency.P99InMs)
 	}
 
-	results := make([]*Result, 0,  6 * len(countsMap))
+	results := make([]*Result, 0, 6*len(countsMap))
 
 	for name := range countsMap {
 		countJitter := m.CalculateJitter(countsMap[name])
@@ -78,7 +78,7 @@ func (b *TpccBench) Results() ([]*Result, error) {
 			{name, "tps-jitter-max", strconv.FormatFloat(countJitter.Max, 'f', 2, 64)},
 
 			{name, "avg-lat-jitter-sd", strconv.FormatFloat(avgLatJitter.Sd, 'f', 2, 64)},
-			{name,"avg-lat-jitter-max", strconv.FormatFloat(avgLatJitter.Max, 'f', 2, 64)},
+			{name, "avg-lat-jitter-max", strconv.FormatFloat(avgLatJitter.Max, 'f', 2, 64)},
 
 			{name, "p99-lat-jitter-sd", strconv.FormatFloat(p99LatJitter.Sd, 'f', 2, 64)},
 			{name, "p99-lat-jitter-max", strconv.FormatFloat(p99LatJitter.Max, 'f', 2, 64)},
