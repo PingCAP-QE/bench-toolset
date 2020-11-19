@@ -26,17 +26,17 @@ func (m *Metrics) CalculateJitter(values []float64) *JitterResult {
 		sum += v
 	}
 	avg := sum / count
-	jitterSum := float64(0)
+	powDeltaSum := float64(0)
 	jitterMax := float64(0)
 	for _, v := range values {
 		jitter := math.Abs(v - avg)
 		if jitter > jitterMax {
 			jitterMax = jitter
 		}
-		jitterSum += math.Pow(jitter, 2)
+		powDeltaSum += math.Pow(jitter, 2)
 	}
 	return &JitterResult{
-		Sd:  math.Sqrt(jitterSum / count),
+		Sd:  math.Sqrt(powDeltaSum / count) / avg,
 		Max: jitterMax,
 	}
 }
