@@ -8,23 +8,23 @@ import (
 	"github.com/5kbpers/stability_bench/workload"
 )
 
-type GcBench struct {
+type TpccBench struct {
 	load  workload.Workload
 	start time.Time
 	end   time.Time
 }
 
-func NewGcBench(load workload.Workload) *GcBench {
-	return &GcBench{
+func NewTpccBench(load workload.Workload) *TpccBench {
+	return &TpccBench{
 		load: load,
 	}
 }
 
-func (b *GcBench) Prepare() error {
+func (b *TpccBench) Prepare() error {
 	return b.load.Prepare()
 }
 
-func (b *GcBench) Run() error {
+func (b *TpccBench) Run() error {
 	b.start = time.Now()
 	err := b.load.Start()
 	if err != nil {
@@ -34,7 +34,7 @@ func (b *GcBench) Run() error {
 	return nil
 }
 
-func (b *GcBench) Results() ([]*Result, error) {
+func (b *TpccBench) Results() ([]*Result, error) {
 	records, err := b.load.Records()
 	if err != nil {
 		return nil, err

@@ -36,8 +36,8 @@ func NewMetricsCommand() *cobra.Command {
 
 func newJitterCommand() *cobra.Command {
 	command := &cobra.Command{
-		Use:   "metrics",
-		Short: "Query metrics from Prometheus",
+		Use:   "jitter",
+		Short: "Calculate jitter for metrics",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			source, err := metrics.NewPrometheus(address)
 			if err != nil {

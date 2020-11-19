@@ -102,7 +102,7 @@ func newTpccCommand() *cobra.Command {
 				Time:       runTime,
 				LogPath:    logPath,
 			}
-			b := bench.NewGcBench(load)
+			b := bench.NewTpccBench(load)
 			log.Info("Prepare benchmark...")
 			err = b.Prepare()
 			if err != nil {
