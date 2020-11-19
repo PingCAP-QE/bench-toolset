@@ -21,12 +21,15 @@ var (
 	threads     uint64
 	logPath     string
 	recordDbDsn string
+	runTime     time.Duration
 
 	recordDb *sql.DB
 
 	sysbenchTables    uint64
 	sysbenchTableSize uint64
-	sysbenchTime      time.Duration
+	sysbenchName      string
+
+	tpccWareHouses uint64
 )
 
 func init() {
@@ -49,15 +52,15 @@ func NewBenchCommand() *cobra.Command {
 		Short: "Run benchmarks for stability test",
 	}
 
-	command.AddCommand(newGcBenchCommand())
+	command.AddCommand(newGcCommand())
 
 	return command
 }
 
-func newGcBenchCommand() *cobra.Command {
+func newGcCommand() *cobra.Command {
 	command := &cobra.Command{
-		Use:   "gc",
-		Short: "Run GC workload",
+		Use:   "tpcc",
+		Short: "Run Tpc-C workload",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 			var benchId int64
@@ -89,18 +92,15 @@ func newGcBenchCommand() *cobra.Command {
 				}
 			}
 
-			load := &workload.Sysbench{
-				Name:           "oltp_update_index",
-				Host:           host,
-				User:           user,
-				Port:           port,
-				Db:             db,
-				Threads:        threads,
-				Tables:         sysbenchTables,
-				TableSize:      sysbenchTableSize,
-				Time:           sysbenchTime,
-				ReportInterval: time.Second * 10,
-				LogPath:        logPath,
+			load := &workload.Tpcc{
+				WareHouses: tpccWareHouses,
+				Db:         db,
+				Host:       host,
+				Port:       port,
+				User:       user,
+				Threads:    threads,
+				Time:       runTime,
+				LogPath:    logPath,
 			}
 			b := bench.NewGcBench(load)
 			log.Info("Prepare benchmark...")
@@ -130,9 +130,8 @@ func newGcBenchCommand() *cobra.Command {
 		},
 	}
 
-	command.PersistentFlags().Uint64Var(&sysbenchTables, "tables", 16, "table count of sysbench workload")
-	command.PersistentFlags().Uint64Var(&sysbenchTableSize, "size", 100000, "table size of sysbench workload")
-	command.PersistentFlags().DurationVar(&sysbenchTime, "time", time.Hour, "running time of sysbench workload")
+	command.PersistentFlags().Uint64Var(&tpccWareHouses, "warehouse", 16, "table count of sysbench workload")
+	command.PersistentFlags().DurationVar(&runTime, "time", time.Hour, "running time of workload")
 
 	return command
 }
