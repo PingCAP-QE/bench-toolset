@@ -14,7 +14,7 @@ fmt:
 	@git diff --exit-code .
 
 build: mod
-	$(GO) build -o bin/stability_test cmd/*
+	$(GO) build -o bin/stability_test
 
 vet:
 	go vet ./...
