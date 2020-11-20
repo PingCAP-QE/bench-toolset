@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	tpccRecordRegexp = regexp.MustCompile(`\[\w+\]\s([\w]+)\s-\sTakes\(s\):\s[\d\.]+,\sCount:\s(\d+),\sTPM:\s[\d\.]+,\sSum\(ms\):\s([\d\.]+),\sAvg\(ms\):\s([\d\.]+),\s90th\(ms\):\s([\d\.]+),\s99th\(ms\):\s([\d\.]+),\s99\.9th\(ms\):\s([\d\.]+)`)
+	tpccRecordRegexp = regexp.MustCompile(`\[\w+\]\s([\w]+)\s-\sTakes\(s\):\s([\d\.]+),\sCount:\s(\d+),\sTPM:\s[\d\.]+,\sSum\(ms\):\s[\d\.]+,\sAvg\(ms\):\s([\d\.]+),\s90th\(ms\):\s([\d\.]+),\s99th\(ms\):\s([\d\.]+),\s99\.9th\(ms\):\s([\d\.]+)`)
 )
 
 type Tpcc struct {
@@ -39,7 +39,7 @@ func (t *Tpcc) Start() error {
 	args = append([]string{"tpcc", "run"}, args...)
 	cmd := exec.Command("go-tpc", args...)
 	if len(t.LogPath) > 0 {
-		logFile, err := os.OpenFile(t.LogPath, os.O_CREATE|os.O_RDWR, 0644)
+		logFile, err := os.OpenFile(t.LogPath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 		if err != nil {
 			return err
 		}
@@ -57,11 +57,11 @@ func (t *Tpcc) Records() ([]*Record, error) {
 	matchedRecords := tpccRecordRegexp.FindAllSubmatch(content, -1)
 	records := make([]*Record, len(matchedRecords))
 	for i, matched := range matchedRecords {
-		takesInSec, err := strconv.ParseFloat(string(matched[1]), 64)
+		takesInSec, err := strconv.ParseFloat(string(matched[2]), 64)
 		if err != nil {
 			return nil, errors.AddStack(err)
 		}
-		count, err := strconv.ParseFloat(string(matched[2]), 64)
+		count, err := strconv.ParseFloat(string(matched[3]), 64)
 		if err != nil {
 			return nil, errors.AddStack(err)
 		}
@@ -74,7 +74,7 @@ func (t *Tpcc) Records() ([]*Record, error) {
 			return nil, errors.AddStack(err)
 		}
 		records[i] = &Record{
-			Type:    string(matched[0]),
+			Type:    string(matched[1]),
 			Count:   count,
 			Latency: &Latency{AvgInMs: avgLat, P99InMs: p99Lat},
 			Time:    time.Millisecond * time.Duration(takesInSec*1000),
