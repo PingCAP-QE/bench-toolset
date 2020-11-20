@@ -24,7 +24,8 @@ var (
 	recordDbDsn string
 	runTime     time.Duration
 
-	brArgs []string
+	brArgs         []string
+	prometheusAddr string
 
 	sysbenchTables    uint64
 	sysbenchTableSize uint64
@@ -34,9 +35,9 @@ var (
 )
 
 var (
-	benchId int64
+	benchId      int64
 	recordDbConn *sql.Conn
-	results []*bench.Result
+	results      []*bench.Result
 )
 
 func init() {
@@ -48,8 +49,9 @@ func init() {
 	benchCmd.PersistentFlags().StringVar(&logPath, "log", "", "log path of workload")
 	benchCmd.PersistentFlags().Uint64Var(&port, "port", 4000, "port of tidb cluster")
 	benchCmd.PersistentFlags().Uint64Var(&threads, "threads", 16, "port of tidb cluster")
-	benchCmd.PersistentFlags().StringVar(&recordDbDsn, "record-dsn", "", "Dsn of database for storing test record")
-	benchCmd.PersistentFlags().StringArrayVar(&brArgs, "br-args", []string{}, "Args of br restore")
+	benchCmd.PersistentFlags().StringVar(&recordDbDsn, "record-dsn", "", "dsn of database for storing test record")
+	benchCmd.PersistentFlags().StringArrayVar(&brArgs, "br-args", []string{}, "args of br restore")
+	benchCmd.PersistentFlags().StringVar(&prometheusAddr, "prometheus", "", "addr of prometheus")
 
 	rootCmd.AddCommand(benchCmd)
 }
@@ -102,8 +104,12 @@ func newTpccCommand() *cobra.Command {
 		PostRunE: func(cmd *cobra.Command, args []string) error {
 			if recordDbConn != nil {
 				log.Info("Save results to record database...")
+				_, err := recordDbConn.ExecContext(context.Background(), "UPDATE bench_info SET end_time=NOW() where id=?", benchId)
+				if err != nil {
+					return errors.Trace(err)
+				}
 				for _, rs := range results {
-					_, err := recordDbConn.ExecContext(context.Background(),"INSERT INTO bench_result values (?, ?, ?, ?)", benchId, rs.Name, rs.Value, rs.Type)
+					_, err = recordDbConn.ExecContext(context.Background(), "INSERT INTO bench_result values (?, ?, ?, ?)", benchId, rs.Name, rs.Value, rs.Type)
 					if err != nil {
 						return errors.Trace(err)
 					}
