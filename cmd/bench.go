@@ -24,6 +24,8 @@ var (
 	recordDbDsn string
 	runTime     time.Duration
 
+	brArgs []string
+
 	sysbenchTables    uint64
 	sysbenchTableSize uint64
 	sysbenchName      string
@@ -47,6 +49,7 @@ func init() {
 	benchCmd.PersistentFlags().Uint64Var(&port, "port", 4000, "port of tidb cluster")
 	benchCmd.PersistentFlags().Uint64Var(&threads, "threads", 16, "port of tidb cluster")
 	benchCmd.PersistentFlags().StringVar(&recordDbDsn, "record-dsn", "", "Dsn of database for storing test record")
+	benchCmd.PersistentFlags().StringArrayVar(&brArgs, "br-args", []string{}, "Args of br restore")
 
 	rootCmd.AddCommand(benchCmd)
 }
@@ -121,9 +124,18 @@ func newTpccCommand() *cobra.Command {
 			}
 			b := bench.NewTpccBench(load)
 			log.Info("Prepare benchmark...")
-			err := b.Prepare()
-			if err != nil {
-				return errors.Trace(err)
+			var err error
+			if len(brArgs) > 0 {
+				log.Info("Run BR restore...")
+				err = runBrRestore(brArgs)
+				if err != nil {
+					return errors.Trace(err)
+				}
+			} else {
+				err = b.Prepare()
+				if err != nil {
+					return errors.Trace(err)
+				}
 			}
 			log.Info("Start to run benchmark...")
 			err = b.Run()
