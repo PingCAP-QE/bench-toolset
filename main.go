@@ -1,6 +1,6 @@
 package main
 
-import "github.com/5kbpers/stability_bench/cmd"
+import "github.com/5kbpers/bench-toolset/cmd"
 
 func main() {
 	cmd.Execute()

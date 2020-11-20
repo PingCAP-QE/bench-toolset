@@ -2,7 +2,7 @@ GO=GO15VENDOREXPERIMENT="1" CGO_ENABLED=0 GO111MODULE=on go
 
 FILES_TO_FMT  := $(shell find . -path -prune -o -name '*.go' -print)
 
-IMG ?= 5kbpers/stability_test:latest
+IMG ?= 5kbpers/bench-toolset:latest
 
 all: format build
 
@@ -14,7 +14,7 @@ fmt:
 	@git diff --exit-code .
 
 build: mod
-	$(GO) build -o bin/stability_test
+	$(GO) build -o bin/bench-toolset
 
 vet:
 	go vet ./...

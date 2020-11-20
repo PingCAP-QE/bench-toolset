@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/5kbpers/stability_bench/metrics"
+	"github.com/5kbpers/bench-toolset/metrics"
 	"github.com/spf13/cobra"
 )
 

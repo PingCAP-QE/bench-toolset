@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/5kbpers/stability_bench/bench"
-	"github.com/5kbpers/stability_bench/workload"
+	"github.com/5kbpers/bench-toolset/bench"
+	"github.com/5kbpers/bench-toolset/workload"
 	"github.com/go-sql-driver/mysql"
 	"github.com/pingcap/errors"
 	"github.com/pingcap/log"
@@ -49,7 +49,7 @@ func init() {
 func NewBenchCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "bench",
-		Short: "Run benchmarks for stability test",
+		Short: "Run benchmarks",
 	}
 
 	command.AddCommand(newTpccCommand())

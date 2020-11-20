@@ -7,8 +7,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "stability_bench",
-	Short: "toolset for stability benchmark",
+	Use:   "bench-toolset",
+	Short: "toolset for benchmark",
 }
 
 func Execute() {

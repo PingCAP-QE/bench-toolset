@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/5kbpers/stability_bench/metrics"
-	"github.com/5kbpers/stability_bench/workload"
+	"github.com/5kbpers/bench-toolset/metrics"
+	"github.com/5kbpers/bench-toolset/workload"
 )
 
 type TpccBench struct {

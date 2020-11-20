@@ -1,4 +1,4 @@
-module github.com/5kbpers/stability_bench
+module github.com/5kbpers/bench-toolset
 
 go 1.14
 
