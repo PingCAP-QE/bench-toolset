@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -23,13 +24,17 @@ var (
 	recordDbDsn string
 	runTime     time.Duration
 
-	recordDb *sql.DB
-
 	sysbenchTables    uint64
 	sysbenchTableSize uint64
 	sysbenchName      string
 
 	tpccWareHouses uint64
+)
+
+var (
+	benchId int64
+	recordDbConn *sql.Conn
+	results []*bench.Result
 )
 
 func init() {
@@ -61,21 +66,19 @@ func newTpccCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "tpcc",
 		Short: "Run Tpc-C workload",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-			var benchId int64
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if len(recordDbDsn) != 0 {
 				config, err := mysql.ParseDSN(recordDbDsn)
 				if err != nil {
 					return errors.Trace(err)
 				}
 				log.Info("Parse record database DSN", zap.Reflect("config", config))
-				log.Info("Connect to record database...")
-				recordDb, err = sql.Open("mysql", recordDbDsn)
+				recordDb, err := sql.Open("mysql", recordDbDsn)
 				if err != nil {
 					return errors.Trace(err)
 				}
-				err = recordDb.Ping()
+				log.Info("Connect to record database...")
+				recordDbConn, err = recordDb.Conn(context.Background())
 				if err != nil {
 					return errors.Trace(err)
 				}
@@ -85,13 +88,27 @@ func newTpccCommand() *cobra.Command {
 				if err != nil {
 					return errors.Trace(err)
 				}
-				log.Info("Get benchmark id...", zap.Int64("id", benchId))
 				benchId, err = rs.LastInsertId()
 				if err != nil {
 					return errors.Trace(err)
 				}
+				log.Info("Get benchmark id", zap.Int64("id", benchId))
 			}
-
+			return nil
+		},
+		PostRunE: func(cmd *cobra.Command, args []string) error {
+			if recordDbConn != nil {
+				log.Info("Save results to record database...")
+				for _, rs := range results {
+					_, err := recordDbConn.ExecContext(context.Background(),"INSERT INTO bench_result values (?, ?, ?, ?)", benchId, rs.Name, rs.Value, rs.Type)
+					if err != nil {
+						return errors.Trace(err)
+					}
+				}
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
 			load := &workload.Tpcc{
 				WareHouses: tpccWareHouses,
 				Db:         db,
@@ -104,7 +121,7 @@ func newTpccCommand() *cobra.Command {
 			}
 			b := bench.NewTpccBench(load)
 			log.Info("Prepare benchmark...")
-			err = b.Prepare()
+			err := b.Prepare()
 			if err != nil {
 				return errors.Trace(err)
 			}
@@ -113,19 +130,11 @@ func newTpccCommand() *cobra.Command {
 			if err != nil {
 				return errors.Trace(err)
 			}
-			results, err := b.Results()
+			results, err = b.Results()
 			if err != nil {
 				return errors.Trace(err)
 			}
-			log.Info("Benchmark done, save results to record database...", zap.Reflect("results", results))
-			if recordDb != nil {
-				for _, rs := range results {
-					_, err = recordDb.Exec("INSERT INTO bench_result values (?, ?, ?, ?)", benchId, rs.Name, rs.Value, rs.Type)
-					if err != nil {
-						return errors.Trace(err)
-					}
-				}
-			}
+			log.Info("Benchmark done", zap.Reflect("results", results))
 			return nil
 		},
 	}
