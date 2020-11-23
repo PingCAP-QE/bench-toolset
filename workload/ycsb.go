@@ -110,8 +110,10 @@ func (y *Ycsb) Records() ([]*Record, error) {
 func (y *Ycsb) buildArgs() []string {
 	targetArgs := y.Target.Args()
 	return append(targetArgs, []string{
+		"-P " + y.Workload,
 		"-p threads=" + fmt.Sprintf("%d", y.Threads),
 		"-p operationcount=" + fmt.Sprintf("%d", y.OperationCount),
 		"-p recordcount=" + fmt.Sprintf("%d", y.RecordCount),
+		"--interval=1",
 	}...)
 }

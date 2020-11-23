@@ -11,6 +11,13 @@ type JitterResult struct {
 	Max float64
 }
 
+var (
+	tidbQpsQuery     = ""
+	tikvQpsQuery     = ""
+	tidbLatencyQuery = ""
+	tikvLatencyQuery = ""
+)
+
 func (m *Metrics) Jitter(query string) (*JitterResult, error) {
 	val, err := m.source.Query(query, m.start, m.end, time.Second)
 	fmt.Println(val)
@@ -40,6 +47,10 @@ func (m *Metrics) CalculateJitter(values []float64) *JitterResult {
 	}
 	return &JitterResult{
 		Sd:  math.Sqrt(powDeltaSum/count) / avg,
-		Max: jitterMax,
+		Max: jitterMax / avg,
 	}
+}
+
+func (m *Metrics) TiDBCollectJitter(intervalSecs uint64) (*JitterResult, error) {
+	return nil, nil
 }

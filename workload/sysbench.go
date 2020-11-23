@@ -100,7 +100,7 @@ func (s *Sysbench) buildArgs() []string {
 		"--table-size=" + fmt.Sprintf("%d", s.TableSize),
 		"--threads=" + fmt.Sprintf("%d", s.Threads),
 		"--time=" + fmt.Sprintf("%1.0f", s.Time.Seconds()),
-		"--report-interval=10",
+		"--report-interval=1",
 		"--percentile=99",
 	}
 }

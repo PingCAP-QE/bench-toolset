@@ -57,10 +57,6 @@ func (t *Tpcc) Records() ([]*Record, error) {
 	matchedRecords := tpccRecordRegexp.FindAllSubmatch(content, -1)
 	records := make([]*Record, len(matchedRecords))
 	for i, matched := range matchedRecords {
-		takesInSec, err := strconv.ParseFloat(string(matched[2]), 64)
-		if err != nil {
-			return nil, errors.AddStack(err)
-		}
 		count, err := strconv.ParseFloat(string(matched[3]), 64)
 		if err != nil {
 			return nil, errors.AddStack(err)
@@ -76,8 +72,8 @@ func (t *Tpcc) Records() ([]*Record, error) {
 		records[i] = &Record{
 			Type:    string(matched[1]),
 			Count:   count,
-			Latency: &Latency{AvgInMs: avgLat, P99InMs: p99Lat},
-			Time:    time.Millisecond * time.Duration(takesInSec*1000),
+			AvgLatInMs: avgLat,
+			P99LatInMs: p99Lat,
 		}
 	}
 
@@ -92,5 +88,6 @@ func (t *Tpcc) buildArgs() []string {
 		"--user=" + t.User,
 		"--time=" + t.Time.String(),
 		"--db=" + t.Db,
+		"--interval=1s",
 	}
 }

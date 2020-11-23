@@ -15,14 +15,15 @@ import (
 )
 
 var (
-	host        string
-	user        string
-	port        uint64
-	db          string
-	threads     uint64
-	logPath     string
-	recordDbDsn string
-	runTime     time.Duration
+	host         string
+	user         string
+	port         uint64
+	db           string
+	threads      uint64
+	logPath      string
+	recordDbDsn  string
+	runTime      time.Duration
+	intervalSecs int
 
 	brArgs         []string
 	prometheusAddr string
@@ -50,6 +51,7 @@ func init() {
 	benchCmd.PersistentFlags().Uint64Var(&port, "port", 4000, "port of tidb cluster")
 	benchCmd.PersistentFlags().Uint64Var(&threads, "threads", 16, "port of tidb cluster")
 	benchCmd.PersistentFlags().StringVar(&recordDbDsn, "record-dsn", "", "dsn of database for storing test record")
+	benchCmd.PersistentFlags().IntVar(&intervalSecs, "interval", 10, "interval of metrics in seconds")
 	benchCmd.PersistentFlags().StringArrayVar(&brArgs, "br-args", []string{}, "args of br restore")
 	benchCmd.PersistentFlags().StringVar(&prometheusAddr, "prometheus", "", "addr of prometheus")
 
@@ -128,7 +130,7 @@ func newTpccCommand() *cobra.Command {
 				Time:       runTime,
 				LogPath:    logPath,
 			}
-			b := bench.NewTpccBench(load)
+			b := bench.NewTpccBench(load, intervalSecs)
 			log.Info("Prepare benchmark...")
 			var err error
 			if len(brArgs) > 0 {

@@ -1,17 +1,10 @@
 package workload
 
-import "time"
-
-type Latency struct {
-	AvgInMs float64
-	P99InMs float64
-}
-
 type Record struct {
 	Type    string
 	Count   float64
-	Latency *Latency
-	Time    time.Duration
+	AvgLatInMs float64
+	P99LatInMs float64
 }
 
 type Workload interface {
