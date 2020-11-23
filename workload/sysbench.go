@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	sysbenchRecordRegexp = regexp.MustCompile(`\[\s\d+s\s\]\sthds:\s(\d+)\stps:\s([\d\.]+)\sqps:\s([\d\.]+)\s[\(\)\w/:\s\d\.]+\slat\s\(ms,99%\):\s([\d\.]+)`)
+	sysbenchRecordRegexp = regexp.MustCompile(`\[\s\d+s\s\]\sthds:\s(\d+)\stps:\s([\d\.]+)\sqps:\s[\d\.]+\s[\(\)\w/:\s\d\.]+\slat\s\(ms,(\d+)%\):\s([\d\.]+)`)
 )
 
 type Sysbench struct {
@@ -55,11 +55,11 @@ func (s *Sysbench) Start() error {
 }
 
 func (s *Sysbench) Records() ([]*Record, error) {
-	return s.parseLogFile()
+	return ParseSysbenchRecords(s.LogPath)
 }
 
-func (s *Sysbench) parseLogFile() ([]*Record, error) {
-	content, err := ioutil.ReadFile(s.LogPath)
+func ParseSysbenchRecords(logPath string) ([]*Record, error) {
+	content, err := ioutil.ReadFile(logPath)
 	if err != nil {
 		return nil, err
 	}
@@ -74,15 +74,25 @@ func (s *Sysbench) parseLogFile() ([]*Record, error) {
 		if err != nil {
 			return nil, errors.AddStack(err)
 		}
-		p99Lat, err := strconv.ParseFloat(string(matched[3]), 64)
-		if err != nil {
-			return nil, errors.AddStack(err)
-		}
 		avgLat := 1000 / tps * threads
 		records[i] = &Record{
-			Count:   tps,
-			Latency: &Latency{AvgInMs: avgLat, P99InMs: p99Lat},
-			Time:    time.Second,
+			Count:      tps,
+			AvgLatInMs: avgLat,
+		}
+		percentage, err := strconv.ParseInt(string(matched[3]), 10, 64)
+		switch percentage {
+		case 95:
+			p95Lat, err := strconv.ParseFloat(string(matched[4]), 64)
+			if err != nil {
+				return nil, errors.AddStack(err)
+			}
+			records[i].P95LatInMs = p95Lat
+		case 99:
+			p99Lat, err := strconv.ParseFloat(string(matched[4]), 64)
+			if err != nil {
+				return nil, errors.AddStack(err)
+			}
+			records[i].P99LatInMs = p99Lat
 		}
 	}
 

@@ -4,6 +4,13 @@ import (
 	"time"
 )
 
+var (
+	tidbQpsQuery     = ""
+	tikvQpsQuery     = ""
+	tidbLatencyQuery = ""
+	tikvLatencyQuery = ""
+)
+
 type Metrics struct {
 	start  time.Time
 	end    time.Time

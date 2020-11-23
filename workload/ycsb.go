@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/pingcap/errors"
 )
@@ -97,10 +96,10 @@ func (y *Ycsb) Records() ([]*Record, error) {
 			return nil, errors.AddStack(err)
 		}
 		records[i] = &Record{
-			Type:    string(matched[0]),
-			Count:   ops,
-			Latency: &Latency{AvgInMs: avgLatInUs / 1000, P99InMs: p99LatInUs / 1000},
-			Time:    time.Second,
+			Type:       string(matched[0]),
+			Count:      ops,
+			AvgLatInMs: avgLatInUs / 1000,
+			P99LatInMs: p99LatInUs / 1000,
 		}
 	}
 

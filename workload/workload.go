@@ -1,9 +1,10 @@
 package workload
 
 type Record struct {
-	Type    string
-	Count   float64
+	Type       string
+	Count      float64
 	AvgLatInMs float64
+	P95LatInMs float64
 	P99LatInMs float64
 }
 

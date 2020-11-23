@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	tpccRecordRegexp = regexp.MustCompile(`\[\w+\]\s([\w]+)\s-\sTakes\(s\):\s([\d\.]+),\sCount:\s(\d+),\sTPM:\s[\d\.]+,\sSum\(ms\):\s[\d\.]+,\sAvg\(ms\):\s([\d\.]+),\s90th\(ms\):\s([\d\.]+),\s99th\(ms\):\s([\d\.]+),\s99\.9th\(ms\):\s([\d\.]+)`)
+	tpccRecordRegexp = regexp.MustCompile(`\[Current\]\s([\w]+)\s-\sTakes\(s\):\s([\d\.]+),\sCount:\s(\d+),\sTPM:\s[\d\.]+,\sSum\(ms\):\s[\d\.]+,\sAvg\(ms\):\s([\d\.]+),\s90th\(ms\):\s([\d\.]+),\s99th\(ms\):\s([\d\.]+),\s99\.9th\(ms\):\s([\d\.]+)`)
 )
 
 type Tpcc struct {
@@ -50,7 +50,11 @@ func (t *Tpcc) Start() error {
 }
 
 func (t *Tpcc) Records() ([]*Record, error) {
-	content, err := ioutil.ReadFile(t.LogPath)
+	return ParseTpccRecords(t.LogPath)
+}
+
+func ParseTpccRecords(logPath string) ([]*Record, error) {
+	content, err := ioutil.ReadFile(logPath)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +74,8 @@ func (t *Tpcc) Records() ([]*Record, error) {
 			return nil, errors.AddStack(err)
 		}
 		records[i] = &Record{
-			Type:    string(matched[1]),
-			Count:   count,
+			Type:       string(matched[1]),
+			Count:      count,
 			AvgLatInMs: avgLat,
 			P99LatInMs: p99Lat,
 		}
