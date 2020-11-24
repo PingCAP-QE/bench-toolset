@@ -72,8 +72,8 @@ func (p *Prometheus) PreciseQuery(query string, start time.Time, end time.Time) 
 	}
 }
 
-func ValuesToFloatArray(val model.Value) []float64 {
-	var values []float64
+func ValuesToFloatArray(val model.Value) TaggedValueSlice {
+	var values TaggedValueSlice
 
 	switch val.Type() {
 	case model.ValVector:
@@ -82,11 +82,12 @@ func ValuesToFloatArray(val model.Value) []float64 {
 			values[i] = float64(sample.Value)
 		}
 	case model.ValScalar:
-		values = []float64{float64(val.(*model.Scalar).Value)}
+		values = TaggedValueSlice{WithTag(float64(val.(*model.Scalar).Value), strconv.FormatInt(int64(val.(*model.Scalar).Timestamp), 10))}
 	case model.ValMatrix:
+		values = make(TaggedValueSlice, 0)
 		for _, stream := range val.(model.Matrix) {
 			for _, sample := range stream.Values {
-				values = append(values, float64(sample.Value))
+				values = append(values, WithTag(float64(sample.Value), strconv.FormatInt(int64(sample.Timestamp), 10)))
 			}
 		}
 	}

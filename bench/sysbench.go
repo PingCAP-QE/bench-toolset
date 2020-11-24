@@ -18,24 +18,25 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 	}
 	results := make([]*Result, 0, 6*len(recordsMap))
 	for _, rs := range recordsMap {
-		counts := make([]float64, len(rs))
-		avgLats := make([]float64, len(rs))
-		p95Lats := make([]float64, 0, len(rs))
-		p99Lats := make([]float64, 0, len(rs))
+		counts := make(metrics.TaggedValueSlice, len(rs))
+		avgLats := make(metrics.TaggedValueSlice, len(rs))
+		p95Lats := make(metrics.TaggedValueSlice, 0, len(rs))
+		p99Lats := make(metrics.TaggedValueSlice, 0, len(rs))
 		for i, r := range rs {
-			counts[i] = r.Count
-			avgLats[i] = r.AvgLatInMs
+			counts[i] = metrics.WithTag(r.Count, r.Tag)
+			avgLats[i] = metrics.WithTag(r.AvgLatInMs, r.Tag)
 			if r.P95LatInMs > 0 {
-				p95Lats = append(p95Lats, r.P95LatInMs)
+				p95Lats = append(p95Lats, metrics.WithTag(r.P95LatInMs, r.Tag))
 			}
 			if r.P99LatInMs > 0 {
-				p99Lats = append(p99Lats, r.P99LatInMs)
+				p99Lats = append(p99Lats, metrics.WithTag(r.P99LatInMs, r.Tag))
 			}
 		}
 		countJitter, countAvg := metrics.CalculateJitter(counts, kNumber, percent)
 		results = append(results, []*Result{
 			{"", "tps-jitter-sd", fmt.Sprintf("%.2f%%", countJitter.Sd*100)},
-			{"", "tps-jitter-max", fmt.Sprintf("%.2f%%", countJitter.Max*100)},
+			{"", "tps-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", countJitter.PositiveMax.Value*100, countJitter.PositiveMax.Tag)},
+			{"", "tps-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", countJitter.NegativeMax.Value*100, countJitter.NegativeMax.Tag)},
 			{"", "avg-tps", strconv.FormatFloat(countAvg, 'f', 2, 64)},
 		}...)
 		if kNumber > 0 {
@@ -56,7 +57,8 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 		avgLatJitter, avgLatAvg := metrics.CalculateJitter(avgLats, kNumber, percent)
 		results = append(results, []*Result{
 			{"", "avg-lat-jitter-sd", fmt.Sprintf("%.2f%%", avgLatJitter.Sd*100)},
-			{"", "avg-lat-jitter-max", fmt.Sprintf("%.2f%%", avgLatJitter.Max*100)},
+			{"", "avg-lat-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", avgLatJitter.PositiveMax.Value*100, avgLatJitter.PositiveMax.Tag)},
+			{"", "avg-lat-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", avgLatJitter.NegativeMax.Value*100, avgLatJitter.NegativeMax.Tag)},
 			{"", "avg-lat-in-ms", strconv.FormatFloat(avgLatAvg, 'f', 2, 64)},
 		}...)
 		if kNumber > 0 {
@@ -78,7 +80,8 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 			p95LatJitter, p95LatAvg := metrics.CalculateJitter(p95Lats, kNumber, percent)
 			results = append(results, []*Result{
 				{"", "p95-lat-jitter-sd", fmt.Sprintf("%.2f%%", p95LatJitter.Sd*100)},
-				{"", "p95-lat-jitter-max", fmt.Sprintf("%.2f%%", p95LatJitter.Max*100)},
+				{"", "p95-lat-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", p95LatJitter.PositiveMax.Value*100, p95LatJitter.PositiveMax.Tag)},
+				{"", "p95-lat-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", p95LatJitter.NegativeMax.Value*100, p95LatJitter.NegativeMax.Tag)},
 				{"", "p95-lat-in-ms", strconv.FormatFloat(p95LatAvg, 'f', 2, 64)},
 			}...)
 			if kNumber > 0 {
@@ -100,8 +103,8 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 		if len(p99Lats) > 0 {
 			p99LatJitter, p99LatAvg := metrics.CalculateJitter(p99Lats, kNumber, percent)
 			results = append(results, []*Result{
-				{"", "p99-lat-jitter-sd", fmt.Sprintf("%.2f%%", p99LatJitter.Sd*100)},
-				{"", "p99-lat-jitter-max", fmt.Sprintf("%.2f%%", p99LatJitter.Max*100)},
+				{"", "p99-lat-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", p99LatJitter.PositiveMax.Value*100, p99LatJitter.PositiveMax.Tag)},
+				{"", "p99-lat-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", p99LatJitter.NegativeMax.Value*100, p99LatJitter.NegativeMax.Tag)},
 				{"", "p99-lat-in-ms", strconv.FormatFloat(p99LatAvg, 'f', 2, 64)},
 			}...)
 			if kNumber > 0 {

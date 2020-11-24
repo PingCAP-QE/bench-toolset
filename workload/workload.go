@@ -2,6 +2,7 @@ package workload
 
 type Record struct {
 	Type       string
+	Tag        string
 	Count      float64
 	AvgLatInMs float64
 	P95LatInMs float64

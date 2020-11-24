@@ -99,7 +99,7 @@ func newLogCommand() *cobra.Command {
 					for _, interval := range is {
 						results := bench.EvalSysbenchRecords(records, int(interval), warmupSecs, cutTailSecs, kNumber, randomPercentage)
 						for _, r := range results {
-							fmt.Printf("%d   %-40s   %8s\n", interval, r.Name, r.Value)
+							fmt.Printf("interval=%-4d   %-40s   %15s\n", interval, r.Name, r.Value)
 						}
 						fmt.Println("")
 					}

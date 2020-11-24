@@ -48,6 +48,7 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 				sumRecord.P95LatInMs = r.P95LatInMs
 			}
 		}
+		sumRecord.Tag = records[i].Tag
 		sumRecord.Count /= float64(chunkSize)
 		sumRecord.AvgLatInMs /= float64(chunkSize)
 		res = append(res, sumRecord)

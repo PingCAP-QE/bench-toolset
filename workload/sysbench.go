@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	sysbenchRecordRegexp = regexp.MustCompile(`\[\s\d+s\s\]\sthds:\s(\d+)\stps:\s([\d\.]+)\sqps:\s[\d\.]+\s[\(\)\w/:\s\d\.]+\slat\s\(ms,(\d+)%\):\s([\d\.]+)`)
+	sysbenchRecordRegexp = regexp.MustCompile(`\[\s(\d+s)\s\]\sthds:\s(\d+)\stps:\s([\d\.]+)\sqps:\s[\d\.]+\s[\(\)\w/:\s\d\.]+\slat\s\(ms,(\d+)%\):\s([\d\.]+)`)
 )
 
 type Sysbench struct {
@@ -66,29 +66,30 @@ func ParseSysbenchRecords(logPath string) ([]*Record, error) {
 	matchedRecords := sysbenchRecordRegexp.FindAllSubmatch(content, -1)
 	records := make([]*Record, len(matchedRecords))
 	for i, matched := range matchedRecords {
-		threads, err := strconv.ParseFloat(string(matched[1]), 64)
+		threads, err := strconv.ParseFloat(string(matched[2]), 64)
 		if err != nil {
 			return nil, errors.AddStack(err)
 		}
-		tps, err := strconv.ParseFloat(string(matched[2]), 64)
+		tps, err := strconv.ParseFloat(string(matched[3]), 64)
 		if err != nil {
 			return nil, errors.AddStack(err)
 		}
 		avgLat := 1000 / tps * threads
 		records[i] = &Record{
+			Tag:        string(matched[1]),
 			Count:      tps,
 			AvgLatInMs: avgLat,
 		}
-		percentage, err := strconv.ParseInt(string(matched[3]), 10, 64)
+		percentage, err := strconv.ParseInt(string(matched[4]), 10, 64)
 		switch percentage {
 		case 95:
-			p95Lat, err := strconv.ParseFloat(string(matched[4]), 64)
+			p95Lat, err := strconv.ParseFloat(string(matched[5]), 64)
 			if err != nil {
 				return nil, errors.AddStack(err)
 			}
 			records[i].P95LatInMs = p95Lat
 		case 99:
-			p99Lat, err := strconv.ParseFloat(string(matched[4]), 64)
+			p99Lat, err := strconv.ParseFloat(string(matched[5]), 64)
 			if err != nil {
 				return nil, errors.AddStack(err)
 			}

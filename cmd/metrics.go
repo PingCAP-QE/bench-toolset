@@ -49,7 +49,7 @@ func newJitterCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("jitter-sd: %f, jitter-max: %f\n", result.Sd, result.Max)
+			fmt.Printf("jitter-sd: %f, positive-jitter-max: %f, negative-jitter-max: %f\n", result.Sd, result.PositiveMax.Value, result.NegativeMax.Value)
 
 			return nil
 		},
