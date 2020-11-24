@@ -84,13 +84,13 @@ func newLogCommand() *cobra.Command {
 				if len(is) == 0 {
 					results := bench.EvalSysbenchRecords(records, -1, warmupSecs, kNumber, randomPercentage)
 					for _, r := range results {
-						fmt.Printf("%s\t%s\n", r.Name, r.Value)
+						fmt.Printf("%s\t%10s\n", r.Name, r.Value)
 					}
 				} else {
 					for _, interval := range is {
 						results := bench.EvalSysbenchRecords(records, int(interval), warmupSecs, kNumber, randomPercentage)
 						for _, r := range results {
-							fmt.Printf("%ds\t%s\t%s\n", interval, r.Name, r.Value)
+							fmt.Printf("%d   %-40s   %s\n", interval, r.Name, r.Value)
 						}
 						fmt.Println("")
 					}

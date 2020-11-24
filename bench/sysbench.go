@@ -40,13 +40,15 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 		if kNumber > 0 {
 			results = append(results, &Result{
 				"",
-				"tps-jitter-kmean", fmt.Sprintf("%.2f%%", countJitter.KMean*100),
+				fmt.Sprintf("tps-jitter-kmean(k=%d)", kNumber),
+				fmt.Sprintf("%.2f%%", countJitter.KMean*100),
 			})
 		}
 		if percent > 0 {
 			results = append(results, &Result{
 				"",
-				"tps-jitter-rand-percent", fmt.Sprintf("%.2f%%", countJitter.Random*100),
+				fmt.Sprintf("count-jitter-rand-percent(p=%.2f%%)", percent),
+				fmt.Sprintf("%.2f%%", countJitter.Random*100),
 			})
 		}
 
@@ -59,13 +61,15 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 		if kNumber > 0 {
 			results = append(results, &Result{
 				"",
-				"avg-lat-jitter-kmean", fmt.Sprintf("%.2f%%", avgLatJitter.KMean*100),
+				fmt.Sprintf("avg-lat-jitter-kmean(k=%d)", kNumber),
+				fmt.Sprintf("%.2f%%", avgLatJitter.KMean*100),
 			})
 		}
 		if percent > 0 {
 			results = append(results, &Result{
 				"",
-				"avg-lat-jitter-rand-percent", fmt.Sprintf("%.2f%%", avgLatJitter.Random*100),
+				fmt.Sprintf("avg-lat-jitter-rand-percent(p=%.2f%%)", percent),
+				fmt.Sprintf("%.2f%%", avgLatJitter.Random*100),
 			})
 		}
 
@@ -79,13 +83,15 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 			if kNumber > 0 {
 				results = append(results, &Result{
 					"",
-					"p95-lat-jitter-kmean", fmt.Sprintf("%.2f%%", p95LatJitter.KMean*100),
+					fmt.Sprintf("p95-lat-jitter-kmean(k=%d)", kNumber),
+					fmt.Sprintf("%.2f%%", p95LatJitter.KMean*100),
 				})
 			}
 			if percent > 0 {
 				results = append(results, &Result{
 					"",
-					"p95-lat-jitter-rand-percent", fmt.Sprintf("%.2f%%", p95LatJitter.Random*100),
+					fmt.Sprintf("p95-lat-jitter-rand-percent(p=%.2f%%)", percent),
+					fmt.Sprintf("%.2f%%", p95LatJitter.Random*100),
 				})
 			}
 		}
@@ -100,13 +106,15 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 			if kNumber > 0 {
 				results = append(results, &Result{
 					"",
-					"p99-lat-jitter-kmean", fmt.Sprintf("%.2f%%", p99LatJitter.KMean*100),
+					fmt.Sprintf("p99-lat-jitter-kmean(k=%d)", kNumber),
+					fmt.Sprintf("%.2f%%", p99LatJitter.KMean*100),
 				})
 			}
 			if percent > 0 {
 				results = append(results, &Result{
 					"",
-					"p99-lat-jitter-rand-percent", fmt.Sprintf("%.2f%%", p99LatJitter.Random*100),
+					fmt.Sprintf("p99-lat-jitter-rand-percent(p=%.2f%%)", percent),
+					fmt.Sprintf("%.2f%%", p99LatJitter.Random*100),
 				})
 			}
 		}

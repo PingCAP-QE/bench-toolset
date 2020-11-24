@@ -36,7 +36,7 @@ func CalculateJitter(values []float64, kNumber int, percent float64) (*JitterRes
 	if kNumber != 0 && len(values) > kNumber {
 		kMin := avgf(values[:kNumber])
 		kMax := avgf(values[len(values)-kNumber:])
-		kMean = (kMax - kMin) / avg
+		kMean = (kMax - kMin) / float64(kNumber) / avg
 	}
 	var randSum float64
 	if percent > 0 && percent < 100 {
