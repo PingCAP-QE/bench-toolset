@@ -39,6 +39,7 @@ func CalculateJitter(values []float64, kNumber int, percent float64) (*JitterRes
 		kMean = (kMax - kMin) / float64(kNumber) / avg
 	}
 	var randSum float64
+	var randAvg float64
 	if percent > 0 && percent < 100 {
 		rand.Seed(time.Now().UnixNano())
 		count := percent / 100 * float64(len(values))
@@ -48,13 +49,13 @@ func CalculateJitter(values []float64, kNumber int, percent float64) (*JitterRes
 			values[len(values)-1], values[r] = values[r], values[len(values)-1]
 			values = values[:len(values)-1]
 		}
-		randSum /= count
+		randAvg /= count
 	}
 	return &JitterResult{
 		Sd:    sd / avg,
 		Max:   jMax,
 		KMean: kMean,
-		Random: randSum / avg,
+		Random: randAvg / avg,
 	}, avg
 }
 
