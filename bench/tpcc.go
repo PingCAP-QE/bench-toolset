@@ -43,11 +43,11 @@ func (b *TpccBench) Results() ([]*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	results := EvalTpccRecords(records, b.intervalSecs, b.warmupSecs, 0, 0)
+	results := EvalTpccRecords(records, b.intervalSecs, b.warmupSecs, 0, 0, 0)
 	return results, nil
 }
 
-func EvalTpccRecords(records []*workload.Record, intervalSecs int, warmupSecs int, kNumber int, percent float64) []*Result {
+func EvalTpccRecords(records []*workload.Record, intervalSecs int, warmupSecs int, cutTailSecs int, kNumber int, percent float64) []*Result {
 	recordsMap := groupRecords(records)
 	if intervalSecs > 0 {
 		for t, rs := range recordsMap {

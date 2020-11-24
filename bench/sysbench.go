@@ -8,11 +8,12 @@ import (
 	"github.com/5kbpers/bench-toolset/workload"
 )
 
-func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSecs int, kNumber int, percent float64) []*Result {
+func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSecs int, cutTailSecs int, kNumber int, percent float64) []*Result {
 	recordsMap := groupRecords(records)
 	if intervalSecs > 0 {
 		for t, rs := range recordsMap {
-			recordsMap[t] = splitRecordChunks(rs[warmupSecs:], intervalSecs)
+			recordsMap[t] = splitRecordChunks(rs[warmupSecs:len(rs)-cutTailSecs], intervalSecs)
+			fmt.Printf("Aggregate records with interval %d, got %d records.\n", intervalSecs, len(recordsMap[t]))
 		}
 	}
 	results := make([]*Result, 0, 6*len(recordsMap))

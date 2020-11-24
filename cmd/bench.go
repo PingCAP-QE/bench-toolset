@@ -57,6 +57,7 @@ func init() {
 	benchCmd.PersistentFlags().StringArrayVar(&brArgs, "br-args", []string{}, "args of br restore")
 	benchCmd.PersistentFlags().StringVar(&prometheusAddr, "prometheus", "", "addr of prometheus")
 	benchCmd.PersistentFlags().IntVar(&warmupSecs, "warmup", 0, "time of warming up in seconds, will skip the top '${warmup}' records ")
+	benchCmd.PersistentFlags().IntVar(&cutTailSecs, "cut-tail", 0, "time of cutting tail in seconds, will skip the last '${cut-tail}' records")
 
 	rootCmd.AddCommand(benchCmd)
 }

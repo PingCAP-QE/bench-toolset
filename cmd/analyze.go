@@ -17,6 +17,7 @@ var (
 	promethuesAddr   string
 	kNumber          int
 	randomPercentage float64
+	cutTailSecs      int
 )
 
 func init() {
@@ -26,6 +27,7 @@ func init() {
 	analyzeCmd.PersistentFlags().StringVar(&benchmark, "benchmark", "", "benchmark name (tpcc, ycsb, sysbench)")
 	analyzeCmd.PersistentFlags().StringVar(&intervals, "interval", "", "interval of analyzing metrics in seconds, separate by ',', eg. 1,5,30")
 	analyzeCmd.PersistentFlags().IntVar(&warmupSecs, "warmup", 0, "time of warming up in seconds, will skip the top '${warmup}' records")
+	analyzeCmd.PersistentFlags().IntVar(&cutTailSecs, "cut-tail", 0, "time of cutting tail in seconds, will skip the last '${cut-tail}' records")
 	analyzeCmd.PersistentFlags().IntVarP(&kNumber, "k-number", "k", 0, "calculate sum of (k-max - k-min)")
 	analyzeCmd.PersistentFlags().Float64Var(&randomPercentage, "percent", 0, "percentage for selected number")
 
@@ -62,14 +64,17 @@ func newLogCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				if (warmupSecs + cutTailSecs) > len(records) {
+					panic("--warmup or --cut-tail maybe too big")
+				}
 				if len(is) == 0 {
-					results := bench.EvalTpccRecords(records, -1, warmupSecs, kNumber, randomPercentage)
+					results := bench.EvalTpccRecords(records, -1, warmupSecs, cutTailSecs, kNumber, randomPercentage)
 					for _, r := range results {
 						fmt.Printf("%s\t%s\t%s\n", r.Type, r.Name, r.Value)
 					}
 				} else {
 					for _, interval := range is {
-						results := bench.EvalTpccRecords(records, int(interval), warmupSecs, kNumber, randomPercentage)
+						results := bench.EvalTpccRecords(records, int(interval), warmupSecs, cutTailSecs, kNumber, randomPercentage)
 						for _, r := range results {
 							fmt.Printf("%ds\t%s\t%s\t%s\n", interval, r.Type, r.Name, r.Value)
 						}
@@ -81,14 +86,18 @@ func newLogCommand() *cobra.Command {
 				if err != nil {
 					return err
 				}
+				if (warmupSecs + cutTailSecs) > len(records) {
+					panic("--warmup or --cut-tail maybe too big")
+				}
+				fmt.Printf("Found %d records, skip first %d and last %d records.\n\n", len(records), warmupSecs, cutTailSecs)
 				if len(is) == 0 {
-					results := bench.EvalSysbenchRecords(records, -1, warmupSecs, kNumber, randomPercentage)
+					results := bench.EvalSysbenchRecords(records, -1, warmupSecs, cutTailSecs, kNumber, randomPercentage)
 					for _, r := range results {
 						fmt.Printf("%s\t%10s\n", r.Name, r.Value)
 					}
 				} else {
 					for _, interval := range is {
-						results := bench.EvalSysbenchRecords(records, int(interval), warmupSecs, kNumber, randomPercentage)
+						results := bench.EvalSysbenchRecords(records, int(interval), warmupSecs, cutTailSecs, kNumber, randomPercentage)
 						for _, r := range results {
 							fmt.Printf("%d   %-40s   %s\n", interval, r.Name, r.Value)
 						}

@@ -49,7 +49,7 @@ func CalculateJitter(values []float64, kNumber int, percent float64) (*JitterRes
 			values[len(values)-1], values[r] = values[r], values[len(values)-1]
 			values = values[:len(values)-1]
 		}
-		randAvg /= count
+		randAvg = randSum / count
 	}
 	return &JitterResult{
 		Sd:    sd / avg,
