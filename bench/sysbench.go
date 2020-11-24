@@ -48,7 +48,7 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 		if percent > 0 {
 			results = append(results, &Result{
 				"",
-				fmt.Sprintf("count-jitter-rand-percent(p=%.2f%%)", percent),
+				fmt.Sprintf("tps-jitter-rand-percent(p=%.2f%%)", percent),
 				fmt.Sprintf("%.2f%%", countJitter.Random*100),
 			})
 		}
