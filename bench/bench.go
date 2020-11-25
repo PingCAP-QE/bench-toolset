@@ -1,6 +1,9 @@
 package bench
 
 import (
+	"fmt"
+
+	"github.com/5kbpers/bench-toolset/metrics"
 	"github.com/5kbpers/bench-toolset/workload"
 )
 
@@ -54,4 +57,30 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 		res = append(res, sumRecord)
 	}
 	return res
+}
+
+func calculateResults(ty string, prefix string, values metrics.TaggedValueSlice, kNumber int, percent float64, unit string) []*Result {
+	results := make([]*Result, 0)
+	jitter, avg := metrics.CalculateJitter(values, kNumber, percent)
+	results = append(results, []*Result{
+		{ty, prefix, fmt.Sprintf("%.2f%s", avg, unit)},
+		{ty, prefix + "-jitter-sd", fmt.Sprintf("%.2f%%", jitter.Sd*100)},
+		{ty, prefix + "-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", jitter.PositiveMax.Value*100, jitter.PositiveMax.Tag)},
+		{ty, prefix + "-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", jitter.NegativeMax.Value*100, jitter.NegativeMax.Tag)},
+	}...)
+	if kNumber > 0 {
+		results = append(results, &Result{
+			"",
+			fmt.Sprintf("%s-jitter-kmean(k=%d)", prefix, kNumber),
+			fmt.Sprintf("%.2f%%", jitter.KMean*100),
+		})
+	}
+	if percent > 0 {
+		results = append(results, &Result{
+			"",
+			fmt.Sprintf("%s-jitter-rand-percent(p=%.2f%%)", prefix, percent),
+			fmt.Sprintf("%.2f%%", jitter.Random*100),
+		})
+	}
+	return results
 }
