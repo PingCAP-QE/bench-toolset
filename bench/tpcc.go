@@ -17,10 +17,12 @@ type TpccBench struct {
 	end          time.Time
 }
 
-func NewTpccBench(load workload.Workload, intervalSecs int) *TpccBench {
+func NewTpccBench(load workload.Tpcc, intervalSecs int, warmupSecs int, cutTailSecs int) *TpccBench {
 	return &TpccBench{
-		load:         load,
+		load:         &load,
 		intervalSecs: intervalSecs,
+		warmupSecs:   warmupSecs,
+		cutTailSecs:  cutTailSecs,
 	}
 }
 
@@ -43,7 +45,7 @@ func (b *TpccBench) Results() ([]*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	results := EvalTpccRecords(records, b.intervalSecs, b.warmupSecs, 0, 0, 0)
+	results := EvalTpccRecords(records, b.intervalSecs, b.warmupSecs, b.cutTailSecs, 0, 0)
 	return results, nil
 }
 

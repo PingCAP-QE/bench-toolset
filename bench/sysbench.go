@@ -2,10 +2,52 @@ package bench
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/5kbpers/bench-toolset/metrics"
 	"github.com/5kbpers/bench-toolset/workload"
 )
+
+type SysbenchBench struct {
+	load         workload.Workload
+	intervalSecs int
+	warmupSecs   int
+	cutTailSecs  int
+	start        time.Time
+	end          time.Time
+}
+
+func NewSysbenchBench(load workload.Sysbench, intervalSecs int, warmupSecs int, cutTailSecs int) *SysbenchBench {
+	return &SysbenchBench{
+		load:         &load,
+		intervalSecs: intervalSecs,
+		warmupSecs:   warmupSecs,
+		cutTailSecs:  cutTailSecs,
+	}
+}
+
+func (b *SysbenchBench) Prepare() error {
+	return b.load.Prepare()
+}
+
+func (b *SysbenchBench) Run() error {
+	b.start = time.Now()
+	err := b.load.Start()
+	if err != nil {
+		return err
+	}
+	b.end = time.Now()
+	return nil
+}
+
+func (b *SysbenchBench) Results() ([]*Result, error) {
+	records, err := b.load.Records()
+	if err != nil {
+		return nil, err
+	}
+	results := EvalSysbenchRecords(records, b.intervalSecs, b.warmupSecs, b.cutTailSecs, 0, 0)
+	return results, nil
+}
 
 func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSecs int, cutTailSecs int, kNumber int, percent float64) []*Result {
 	recordsMap := groupRecords(records)

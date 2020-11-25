@@ -25,11 +25,10 @@ type Sysbench struct {
 	Tables    uint64
 	TableSize uint64
 
-	Name           string
-	Threads        uint64
-	Time           time.Duration
-	ReportInterval time.Duration
-	LogPath        string
+	Name    string
+	Threads uint64
+	Time    time.Duration
+	LogPath string
 }
 
 func (s *Sysbench) Prepare() error {

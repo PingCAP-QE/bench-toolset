@@ -14,9 +14,9 @@ type Benchmark interface {
 }
 
 type Result struct {
-	Type  string
-	Name  string
-	Value string
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 func groupRecords(records []*workload.Record) map[string][]*workload.Record {
