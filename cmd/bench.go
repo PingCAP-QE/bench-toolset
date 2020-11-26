@@ -171,7 +171,7 @@ func newTpccCommand() *cobra.Command {
 					return errors.Trace(err)
 				}
 			}
-			log.Info("Start to run benchmark...")
+			log.Info("Start to run benchmark...", zap.Reflect("benchmark", load))
 			err = b.Run()
 			if err != nil {
 				return errors.Trace(err)
@@ -229,7 +229,7 @@ func newSysbenchCommand() *cobra.Command {
 					return errors.Trace(err)
 				}
 			}
-			log.Info("Start to run benchmark...")
+			log.Info("Start to run benchmark...", zap.Reflect("benchmark", load))
 			err = b.Run()
 			if err != nil {
 				return errors.Trace(err)

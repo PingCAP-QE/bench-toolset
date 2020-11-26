@@ -109,6 +109,7 @@ func (t *Tpcc) buildArgs() []string {
 		"--host=" + t.Host,
 		"--port=" + fmt.Sprintf("%d", t.Port),
 		"--user=" + t.User,
+		"--threads=" + fmt.Sprintf("%d", t.Threads),
 		"--time=" + t.Time.String(),
 		"--db=" + t.Db,
 		"--interval=1s",
