@@ -10,7 +10,7 @@ import (
 type Benchmark interface {
 	Prepare() error
 	Run() error
-	Results() ([]*Result, error)
+	Results() ([]*Result, []*Result, error)
 }
 
 type Result struct {
@@ -39,7 +39,6 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 		if end > len(records) {
 			continue
 		}
-
 		sumRecord := new(workload.Record)
 		for _, r := range records[i:end] {
 			sumRecord.Count += r.Count

@@ -40,13 +40,13 @@ func (b *SysbenchBench) Run() error {
 	return nil
 }
 
-func (b *SysbenchBench) Results() ([]*Result, error) {
-	records, err := b.load.Records()
+func (b *SysbenchBench) Results() ([]*Result, []*Result, error) {
+	records, _, err := b.load.Records()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	results := EvalSysbenchRecords(records, b.intervalSecs, b.warmupSecs, b.cutTailSecs, 0, 0)
-	return results, nil
+	return results, nil, nil
 }
 
 func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSecs int, cutTailSecs int, kNumber int, percent float64) []*Result {

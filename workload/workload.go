@@ -7,10 +7,12 @@ type Record struct {
 	AvgLatInMs float64
 	P95LatInMs float64
 	P99LatInMs float64
+	// TPM for TPCC
+	Payload interface{}
 }
 
 type Workload interface {
 	Prepare() error
 	Start() error
-	Records() ([]*Record, error)
+	Records() ([]*Record, []*Record, error)
 }

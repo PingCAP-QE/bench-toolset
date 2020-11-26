@@ -41,9 +41,10 @@ var (
 )
 
 var (
-	benchId      int64
-	recordDbConn *sql.Conn
-	results      []*bench.Result
+	benchId        int64
+	recordDbConn   *sql.Conn
+	results        []*bench.Result
+	summaryResults []*bench.Result
 )
 
 func init() {
@@ -124,7 +125,8 @@ func maybeSaveTestResults() error {
 		}
 	}
 	if outputJson {
-		j, err := json.Marshal(results)
+		var totalResults = append(results, summaryResults...)
+		j, err := json.Marshal(totalResults)
 		if err != nil {
 			return errors.Trace(err)
 		}
@@ -174,7 +176,7 @@ func newTpccCommand() *cobra.Command {
 			if err != nil {
 				return errors.Trace(err)
 			}
-			results, err = b.Results()
+			results, summaryResults, err = b.Results()
 			if err != nil {
 				return errors.Trace(err)
 			}
@@ -232,7 +234,7 @@ func newSysbenchCommand() *cobra.Command {
 			if err != nil {
 				return errors.Trace(err)
 			}
-			results, err = b.Results()
+			results, _, err = b.Results()
 			if err != nil {
 				return errors.Trace(err)
 			}
