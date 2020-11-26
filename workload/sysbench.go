@@ -53,25 +53,25 @@ func (s *Sysbench) Start() error {
 	return errors.Wrapf(cmd.Run(), "Sysbench run failed: args %v", cmd.Args)
 }
 
-func (s *Sysbench) Records() ([]*Record, error) {
+func (s *Sysbench) Records() ([]*Record, []*Record, error) {
 	return ParseSysbenchRecords(s.LogPath)
 }
 
-func ParseSysbenchRecords(logPath string) ([]*Record, error) {
+func ParseSysbenchRecords(logPath string) ([]*Record, []*Record, error) {
 	content, err := ioutil.ReadFile(logPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	matchedRecords := sysbenchRecordRegexp.FindAllSubmatch(content, -1)
 	records := make([]*Record, len(matchedRecords))
 	for i, matched := range matchedRecords {
 		threads, err := strconv.ParseFloat(string(matched[2]), 64)
 		if err != nil {
-			return nil, errors.AddStack(err)
+			return nil, nil, errors.AddStack(err)
 		}
 		tps, err := strconv.ParseFloat(string(matched[3]), 64)
 		if err != nil {
-			return nil, errors.AddStack(err)
+			return nil, nil, errors.AddStack(err)
 		}
 		avgLat := 1000 / tps * threads
 		records[i] = &Record{
@@ -84,19 +84,19 @@ func ParseSysbenchRecords(logPath string) ([]*Record, error) {
 		case 95:
 			p95Lat, err := strconv.ParseFloat(string(matched[5]), 64)
 			if err != nil {
-				return nil, errors.AddStack(err)
+				return nil, nil, errors.AddStack(err)
 			}
 			records[i].P95LatInMs = p95Lat
 		case 99:
 			p99Lat, err := strconv.ParseFloat(string(matched[5]), 64)
 			if err != nil {
-				return nil, errors.AddStack(err)
+				return nil, nil, errors.AddStack(err)
 			}
 			records[i].P99LatInMs = p99Lat
 		}
 	}
 
-	return records, nil
+	return records, nil, nil
 }
 
 func (s *Sysbench) buildArgs() []string {

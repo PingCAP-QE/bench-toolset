@@ -10,7 +10,7 @@ import (
 type Benchmark interface {
 	Prepare() error
 	Run() error
-	Results() ([]*Result, error)
+	Results() ([]*Result, []*Result, error)
 }
 
 type Result struct {
@@ -37,9 +37,9 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 		end := i + chunkSize
 
 		if end > len(records) {
-			continue
+			end = len(records)
 		}
-
+		actualChunkSize := end - i
 		sumRecord := new(workload.Record)
 		for _, r := range records[i:end] {
 			sumRecord.Count += r.Count
@@ -52,8 +52,8 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 			}
 		}
 		sumRecord.Tag = records[i].Tag
-		sumRecord.Count /= float64(chunkSize)
-		sumRecord.AvgLatInMs /= float64(chunkSize)
+		sumRecord.Count /= float64(actualChunkSize)
+		sumRecord.AvgLatInMs /= float64(actualChunkSize)
 		res = append(res, sumRecord)
 	}
 	return res

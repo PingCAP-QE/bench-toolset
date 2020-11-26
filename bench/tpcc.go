@@ -40,13 +40,14 @@ func (b *TpccBench) Run() error {
 	return nil
 }
 
-func (b *TpccBench) Results() ([]*Result, error) {
-	records, err := b.load.Records()
+func (b *TpccBench) Results() ([]*Result, []*Result, error) {
+	records, summaryRecords, err := b.load.Records()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	results := EvalTpccRecords(records, b.intervalSecs, b.warmupSecs, b.cutTailSecs, 0, 0)
-	return results, nil
+	summaryResults := EvalTpccSummaryRecord(summaryRecords)
+	return results, summaryResults, nil
 }
 
 func EvalTpccRecords(records []*workload.Record, intervalSecs int, warmupSecs int, cutTailSecs int, kNumber int, percent float64) []*Result {
@@ -76,6 +77,19 @@ func EvalTpccRecords(records []*workload.Record, intervalSecs int, warmupSecs in
 		results = append(results, calculateResults(t, "tps", counts, kNumber, percent, "")...)
 		results = append(results, calculateResults(t, "avg-lat", avgLats, kNumber, percent, "ms")...)
 		results = append(results, calculateResults(t, "p99-lat", p99Lats, kNumber, percent, "ms")...)
+	}
+	return results
+}
+
+func EvalTpccSummaryRecord(records []*workload.Record) []*Result {
+	results := make([]*Result, 0)
+	for _, item := range records {
+		tpm := item.Payload.(float64)
+		results = append(results, &Result{
+			Type:  item.Type,
+			Name:  "tpm",
+			Value: fmt.Sprintf("%.2f", tpm),
+		})
 	}
 	return results
 }

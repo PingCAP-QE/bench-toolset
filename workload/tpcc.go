@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	tpccRecordRegexp = regexp.MustCompile(`\[Current\]\s([\w]+)\s-\sTakes\(s\):\s([\d\.]+),\sCount:\s(\d+),\sTPM:\s[\d\.]+,\sSum\(ms\):\s[\d\.]+,\sAvg\(ms\):\s([\d\.]+),\s90th\(ms\):\s([\d\.]+),\s99th\(ms\):\s([\d\.]+),\s99\.9th\(ms\):\s([\d\.]+)`)
+	tpccRecordRegexp  = regexp.MustCompile(`\[Current\]\s([\w]+)\s-\sTakes\(s\):\s([\d\.]+),\sCount:\s(\d+),\sTPM:\s([\d\.]+),\sSum\(ms\):\s([\d\.]+),\sAvg\(ms\):\s([\d\.]+),\s50th\(ms\):\s([\d\.]+),\s90th\(ms\):\s([\d\.]+),\s95th\(ms\):\s([\d\.]+),\s99th\(ms\):\s([\d\.]+),\s99\.9th\(ms\):\s([\d\.]+)`)
+	tpccSummaryRegexp = regexp.MustCompile(`\[Summary\]\s([\w]+)\s-\sTakes\(s\):\s([\d\.]+),\sCount:\s(\d+),\sTPM:\s([\d\.]+),\sSum\(ms\):\s([\d\.]+),\sAvg\(ms\):\s([\d\.]+),\s50th\(ms\):\s([\d\.]+),\s90th\(ms\):\s([\d\.]+),\s95th\(ms\):\s([\d\.]+),\s99th\(ms\):\s([\d\.]+),\s99\.9th\(ms\):\s([\d\.]+)`)
 )
 
 type Tpcc struct {
@@ -49,39 +50,57 @@ func (t *Tpcc) Start() error {
 	return errors.Wrapf(cmd.Run(), "Tpcc run failed: args %v", cmd.Args)
 }
 
-func (t *Tpcc) Records() ([]*Record, error) {
+func (t *Tpcc) Records() ([]*Record, []*Record, error) {
 	return ParseTpccRecords(t.LogPath)
 }
 
-func ParseTpccRecords(logPath string) ([]*Record, error) {
+func ParseTpccRecords(logPath string) ([]*Record, []*Record, error) {
 	content, err := ioutil.ReadFile(logPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	// parse interval records
 	matchedRecords := tpccRecordRegexp.FindAllSubmatch(content, -1)
 	records := make([]*Record, len(matchedRecords))
 	for i, matched := range matchedRecords {
 		count, err := strconv.ParseFloat(string(matched[3]), 64)
 		if err != nil {
-			return nil, errors.AddStack(err)
+			return nil, nil, errors.AddStack(err)
 		}
-		avgLat, err := strconv.ParseFloat(string(matched[4]), 64)
+		avgLat, err := strconv.ParseFloat(string(matched[6]), 64)
 		if err != nil {
-			return nil, errors.AddStack(err)
+			return nil, nil, errors.AddStack(err)
 		}
-		p99Lat, err := strconv.ParseFloat(string(matched[6]), 64)
+		p95Lat, err := strconv.ParseFloat(string(matched[9]), 64)
 		if err != nil {
-			return nil, errors.AddStack(err)
+			return nil, nil, errors.AddStack(err)
+		}
+		p99Lat, err := strconv.ParseFloat(string(matched[10]), 64)
+		if err != nil {
+			return nil, nil, errors.AddStack(err)
 		}
 		records[i] = &Record{
 			Type:       string(matched[1]),
 			Count:      count,
 			AvgLatInMs: avgLat,
+			P95LatInMs: p95Lat,
 			P99LatInMs: p99Lat,
 		}
 	}
-
-	return records, nil
+	// parse the summary record
+	matchedRecords = tpccSummaryRegexp.FindAllSubmatch(content, -1)
+	summaryRecord := make([]*Record, len(matchedRecords))
+	for i, matched := range matchedRecords {
+		tpm, err := strconv.ParseFloat(string(matched[4]), 64)
+		if err != nil {
+			return nil, nil, errors.AddStack(err)
+		}
+		summaryRecord[i] = &Record{
+			Type:    string(matched[1]),
+			Payload: tpm,
+		}
+	}
+	return records, summaryRecord, nil
 }
 
 func (t *Tpcc) buildArgs() []string {

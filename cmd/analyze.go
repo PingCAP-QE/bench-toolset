@@ -60,7 +60,7 @@ func newLogCommand() *cobra.Command {
 			}
 			switch benchmark {
 			case "tpcc":
-				records, err = workload.ParseTpccRecords(logPath)
+				records, _, err = workload.ParseTpccRecords(logPath)
 				if err != nil {
 					return err
 				}
@@ -82,7 +82,7 @@ func newLogCommand() *cobra.Command {
 					}
 				}
 			case "sysbench":
-				records, err = workload.ParseSysbenchRecords(logPath)
+				records, _, err = workload.ParseSysbenchRecords(logPath)
 				if err != nil {
 					return err
 				}
