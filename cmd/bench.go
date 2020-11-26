@@ -159,18 +159,18 @@ func newTpccCommand() *cobra.Command {
 			b := bench.NewTpccBench(load, intervalSecs, warmupSecs, cutTailSecs)
 			log.Info("Prepare benchmark...")
 			var err error
-			//if len(brArgs) > 0 {
-			//	log.Info("Run BR restore...")
-			//	err = runBrRestore(brArgs)
-			//	if err != nil {
-			//		return errors.Trace(err)
-			//	}
-			//} else {
-			//	err = b.Prepare()
-			//	if err != nil {
-			//		return errors.Trace(err)
-			//	}
-			//}
+			if len(brArgs) > 0 {
+				log.Info("Run BR restore...")
+				err = runBrRestore(brArgs)
+				if err != nil {
+					return errors.Trace(err)
+				}
+			} else {
+				err = b.Prepare()
+				if err != nil {
+					return errors.Trace(err)
+				}
+			}
 			log.Info("Start to run benchmark...")
 			err = b.Run()
 			if err != nil {
