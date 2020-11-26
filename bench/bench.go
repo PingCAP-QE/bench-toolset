@@ -37,9 +37,8 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 		end := i + chunkSize
 
 		if end > len(records) {
-			end = len(records)
+			continue
 		}
-		actualChunkSize := end - i
 		sumRecord := new(workload.Record)
 		for _, r := range records[i:end] {
 			sumRecord.Count += r.Count
@@ -52,8 +51,8 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 			}
 		}
 		sumRecord.Tag = records[i].Tag
-		sumRecord.Count /= float64(actualChunkSize)
-		sumRecord.AvgLatInMs /= float64(actualChunkSize)
+		sumRecord.Count /= float64(chunkSize)
+		sumRecord.AvgLatInMs /= float64(chunkSize)
 		res = append(res, sumRecord)
 	}
 	return res
