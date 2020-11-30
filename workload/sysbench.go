@@ -60,25 +60,29 @@ func (s *Sysbench) Start() error {
 }
 
 func (s *Sysbench) Records() ([]*Record, []*Record, error) {
-	return ParseSysbenchRecords(s.LogPath)
-}
-
-func ParseSysbenchRecords(logPath string) ([]*Record, []*Record, error) {
-	content, err := ioutil.ReadFile(logPath)
+	records, err := ParseSysbenchRecords(s.LogPath)
 	if err != nil {
 		return nil, nil, err
 	}
+	summaryRecord, err := ParseSysbenchSummaryReport(s.LogPath)
+	return records, summaryRecord, err
+}
+
+func ParseSysbenchRecords(logPath string) ([]*Record, error) {
+	content, err := ioutil.ReadFile(logPath)
+	if err != nil {
+		return nil, err
+	}
 	matchedRecords := sysbenchRecordRegexp.FindAllSubmatch(content, -1)
 	records := make([]*Record, len(matchedRecords))
-	summaryRecords := make([]*Record, 0)
 	for i, matched := range matchedRecords {
 		threads, err := strconv.ParseFloat(string(matched[2]), 64)
 		if err != nil {
-			return nil, nil, errors.AddStack(err)
+			return nil, errors.AddStack(err)
 		}
 		tps, err := strconv.ParseFloat(string(matched[3]), 64)
 		if err != nil {
-			return nil, nil, errors.AddStack(err)
+			return nil, errors.AddStack(err)
 		}
 		avgLat := 1000 / tps * threads
 		records[i] = &Record{
@@ -91,17 +95,26 @@ func ParseSysbenchRecords(logPath string) ([]*Record, []*Record, error) {
 		case 95:
 			p95Lat, err := strconv.ParseFloat(string(matched[5]), 64)
 			if err != nil {
-				return nil, nil, errors.AddStack(err)
+				return nil, errors.AddStack(err)
 			}
 			records[i].P95LatInMs = p95Lat
 		case 99:
 			p99Lat, err := strconv.ParseFloat(string(matched[5]), 64)
 			if err != nil {
-				return nil, nil, errors.AddStack(err)
+				return nil, errors.AddStack(err)
 			}
 			records[i].P99LatInMs = p99Lat
 		}
 	}
+	return records, nil
+}
+
+func ParseSysbenchSummaryReport(logPath string) ([]*Record, error) {
+	content, err := ioutil.ReadFile(logPath)
+	if err != nil {
+		return nil, err
+	}
+	summaryRecords := make([]*Record, 0)
 	tps := sysbenchTpsRegex.FindAllSubmatch(content, -1)
 	if len(tps) == 1 {
 		summaryRecords = append(summaryRecords, &Record{
@@ -150,7 +163,7 @@ func ParseSysbenchRecords(logPath string) ([]*Record, []*Record, error) {
 			Payload: string(p99Lat[0][1]),
 		})
 	}
-	return records, summaryRecords, nil
+	return summaryRecords, nil
 }
 
 func (s *Sysbench) buildArgs() []string {

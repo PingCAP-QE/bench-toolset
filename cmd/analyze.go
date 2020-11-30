@@ -82,7 +82,7 @@ func newLogCommand() *cobra.Command {
 					}
 				}
 			case "sysbench":
-				records, _, err = workload.ParseSysbenchRecords(logPath)
+				records, err = workload.ParseSysbenchRecords(logPath)
 				if err != nil {
 					return err
 				}
