@@ -41,12 +41,12 @@ func (b *SysbenchBench) Run() error {
 }
 
 func (b *SysbenchBench) Results() ([]*Result, []*Result, error) {
-	records, _, err := b.load.Records()
+	records, summaryRecord, err := b.load.Records()
 	if err != nil {
 		return nil, nil, err
 	}
 	results := EvalSysbenchRecords(records, b.intervalSecs, b.warmupSecs, b.cutTailSecs, 0, 0)
-	return results, nil, nil
+	return results, EvalSysbenchSummaryRecords(summaryRecord), nil
 }
 
 func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSecs int, cutTailSecs int, kNumber int, percent float64) []*Result {
@@ -83,4 +83,16 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 		}
 	}
 	return results
+}
+
+func EvalSysbenchSummaryRecords(records []*workload.Record) (results []*Result) {
+	for _, record := range records {
+		value := record.Payload.(string)
+		results = append(results, &Result{
+			Type:  record.Type,
+			Name:  record.Tag,
+			Value: value,
+		})
+	}
+	return
 }
