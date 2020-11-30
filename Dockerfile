@@ -24,6 +24,7 @@ ENV GO111MODULE=on
 RUN mkdir -p /go/src/github.com/pingcap/br
 WORKDIR /go/src/github.com/pingcap/br
 RUN git clone https://github.com/pingcap/br.git .
+RUN git checkout release-4.0
 RUN make build
 
 FROM perconalab/sysbench
