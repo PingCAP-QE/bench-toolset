@@ -99,7 +99,7 @@ func (y *Ycsb) Records() ([]*Record, error) {
 			Type:       string(matched[0]),
 			Count:      ops,
 			AvgLatInMs: avgLatInUs / 1000,
-			P99LatInMs: p99LatInUs / 1000,
+			Payload:    map[string]interface{}{"p99-lat": p99LatInUs / 1000},
 		}
 	}
 

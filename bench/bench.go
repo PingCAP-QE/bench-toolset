@@ -43,11 +43,10 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 		for _, r := range records[i:end] {
 			sumRecord.Count += r.Count
 			sumRecord.AvgLatInMs += r.AvgLatInMs
-			if r.P99LatInMs > sumRecord.P99LatInMs {
-				sumRecord.P99LatInMs = r.P99LatInMs
-			}
-			if r.P95LatInMs > sumRecord.P95LatInMs {
-				sumRecord.P95LatInMs = r.P95LatInMs
+			for name, value := range r.Payload {
+				if value.(float64) > sumRecord.Payload[name].(float64) {
+					sumRecord.Payload[name] = value
+				}
 			}
 		}
 		sumRecord.Tag = records[i].Tag

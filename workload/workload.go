@@ -5,10 +5,8 @@ type Record struct {
 	Tag        string
 	Count      float64
 	AvgLatInMs float64
-	P95LatInMs float64
-	P99LatInMs float64
-	// TPM for TPCC
-	Payload interface{}
+	// metric name -> value
+	Payload map[string]interface{}
 }
 
 type Workload interface {
