@@ -79,6 +79,7 @@ func ParseTpccRecords(logPath string) ([]*Record, []*Record, error) {
 		if err != nil {
 			return nil, nil, errors.AddStack(err)
 		}
+		fmt.Println("p95", p95Lat, "p99", p99Lat)
 		records[i] = &Record{
 			Type:       string(matched[1]),
 			Count:      count,
