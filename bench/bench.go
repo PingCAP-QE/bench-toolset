@@ -68,9 +68,18 @@ func calculateResults(ty string, prefix string, values metrics.TaggedValueSlice,
 	results = append(results, []*Result{
 		{ty, prefix, fmt.Sprintf("%.2f%s", avg, unit)},
 		{ty, prefix + "-jitter-sd", fmt.Sprintf("%.2f%%", jitter.Sd*100)},
-		{ty, prefix + "-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", jitter.PositiveMax.Value*100, jitter.PositiveMax.Tag)},
-		{ty, prefix + "-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", jitter.NegativeMax.Value*100, jitter.NegativeMax.Tag)},
 	}...)
+	if len(jitter.PositiveMax.Tag) > 0 {
+		results = append(results, &Result{ty, prefix + "-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", jitter.PositiveMax.Value*100, jitter.PositiveMax.Tag)})
+	} else {
+		results = append(results, &Result{ty, prefix + "-jitter-positive-max", fmt.Sprintf("%.2f%%", jitter.PositiveMax.Value*100)})
+	}
+	if len(jitter.NegativeMax.Tag) > 0 {
+		results = append(results, &Result{ty, prefix + "-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", jitter.NegativeMax.Value*100, jitter.NegativeMax.Tag)})
+	} else {
+		results = append(results, &Result{ty, prefix + "-jitter-negative-max", fmt.Sprintf("%.2f%%", jitter.NegativeMax.Value*100)})
+	}
+
 	if kNumber > 0 {
 		results = append(results, &Result{
 			"",
