@@ -41,12 +41,12 @@ func (b *SysbenchBench) Run() error {
 }
 
 func (b *SysbenchBench) Results() ([]*Result, []*Result, error) {
-	records, _, err := b.load.Records()
+	records, summaryRecord, err := b.load.Records()
 	if err != nil {
 		return nil, nil, err
 	}
 	results := EvalSysbenchRecords(records, b.intervalSecs, b.warmupSecs, b.cutTailSecs, 0, 0)
-	return results, nil, nil
+	return results, EvalSysbenchSummaryRecords(summaryRecord), nil
 }
 
 func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSecs int, cutTailSecs int, kNumber int, percent float64) []*Result {
@@ -61,26 +61,34 @@ func EvalSysbenchRecords(records []*workload.Record, intervalSecs int, warmupSec
 	for _, rs := range recordsMap {
 		counts := make(metrics.TaggedValueSlice, len(rs))
 		avgLats := make(metrics.TaggedValueSlice, len(rs))
-		p95Lats := make(metrics.TaggedValueSlice, 0, len(rs))
-		p99Lats := make(metrics.TaggedValueSlice, 0, len(rs))
+		payloads := make(map[string]metrics.TaggedValueSlice)
 		for i, r := range rs {
 			counts[i] = metrics.WithTag(r.Count, r.Tag)
 			avgLats[i] = metrics.WithTag(r.AvgLatInMs, r.Tag)
-			if r.P95LatInMs > 0 {
-				p95Lats = append(p95Lats, metrics.WithTag(r.P95LatInMs, r.Tag))
-			}
-			if r.P99LatInMs > 0 {
-				p99Lats = append(p99Lats, metrics.WithTag(r.P99LatInMs, r.Tag))
+			for name, value := range r.Payload {
+				_, ok := payloads[name]
+				if !ok {
+					payloads[name] = make(metrics.TaggedValueSlice, 0, len(rs))
+				}
+				payloads[name] = append(payloads[name], metrics.WithTag(value.(float64), r.Tag))
 			}
 		}
 		results = append(results, calculateResults("", "tps", counts, kNumber, percent, "")...)
 		results = append(results, calculateResults("", "avg-lat", avgLats, kNumber, percent, "ms")...)
-		if len(p95Lats) > 0 {
-			results = append(results, calculateResults("", "p95-lat", p95Lats, kNumber, percent, "ms")...)
-		}
-		if len(p99Lats) > 0 {
-			results = append(results, calculateResults("", "p99-lat", p99Lats, kNumber, percent, "ms")...)
+		for prefix, values := range payloads {
+			results = append(results, calculateResults("", prefix, values, kNumber, percent, "ms")...)
 		}
 	}
 	return results
+}
+
+func EvalSysbenchSummaryRecords(records []*workload.Record) (results []*Result) {
+	for tag, value := range records[0].Payload {
+		results = append(results, &Result{
+			Type:  records[0].Type,
+			Name:  tag,
+			Value: value.(string),
+		})
+	}
+	return
 }

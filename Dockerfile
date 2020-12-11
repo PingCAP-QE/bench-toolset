@@ -17,7 +17,7 @@ ENV GO111MODULE=on
 RUN mkdir -p /go/src/github.com/pingcap/go-ycsb
 WORKDIR /go/src/github.com/pingcap/go-ycsb
 RUN git clone https://github.com/pingcap/go-ycsb.git .
-RUN make build
+RUN GO111MODULE=on go build -o bin/go-ycsb ./cmd/*
 
 FROM golang:1.14 as brbuilder
 ENV GO111MODULE=on
@@ -27,9 +27,13 @@ RUN git clone https://github.com/pingcap/br.git .
 RUN git checkout release-4.0
 RUN make build
 
-FROM perconalab/sysbench
+FROM golang:1.14
+RUN curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.deb.sh | bash
+RUN apt -y install sysbench
+RUN mkdir -p /ycsb/workloads
 COPY --from=builder /src/bin/* /bin/
 COPY --from=tpcbuilder /go/src/github.com/pingcap/go-tpc/bin/* /bin/
 COPY --from=ycsbbuilder /go/src/github.com/pingcap/go-ycsb/bin/* /bin/
+COPY --from=ycsbbuilder /go/src/github.com/pingcap/go-ycsb/workloads/* /ycsb/workloads/
 COPY --from=brbuilder /go/src/github.com/pingcap/br/bin/* /bin/
 ENV PATH="$PATH:/bin"

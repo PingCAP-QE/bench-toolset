@@ -79,12 +79,12 @@ func ParseTpccRecords(logPath string) ([]*Record, []*Record, error) {
 		if err != nil {
 			return nil, nil, errors.AddStack(err)
 		}
+		fmt.Println("p95", p95Lat, "p99", p99Lat)
 		records[i] = &Record{
 			Type:       string(matched[1]),
 			Count:      count,
 			AvgLatInMs: avgLat,
-			P95LatInMs: p95Lat,
-			P99LatInMs: p99Lat,
+			Payload:    map[string]interface{}{"p95-lat": p95Lat, "p99-lat": p99Lat},
 		}
 	}
 	// parse the summary record
@@ -97,7 +97,7 @@ func ParseTpccRecords(logPath string) ([]*Record, []*Record, error) {
 		}
 		summaryRecord[i] = &Record{
 			Type:    string(matched[1]),
-			Payload: tpm,
+			Payload: map[string]interface{}{"tpm": tpm},
 		}
 	}
 	return records, summaryRecord, nil

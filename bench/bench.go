@@ -40,14 +40,18 @@ func splitRecordChunks(records []*workload.Record, chunkSize int) []*workload.Re
 			continue
 		}
 		sumRecord := new(workload.Record)
+		sumRecord.Payload = make(map[string]interface{})
 		for _, r := range records[i:end] {
 			sumRecord.Count += r.Count
 			sumRecord.AvgLatInMs += r.AvgLatInMs
-			if r.P99LatInMs > sumRecord.P99LatInMs {
-				sumRecord.P99LatInMs = r.P99LatInMs
-			}
-			if r.P95LatInMs > sumRecord.P95LatInMs {
-				sumRecord.P95LatInMs = r.P95LatInMs
+			for name, value := range r.Payload {
+				_, ok := sumRecord.Payload[name]
+				if !ok {
+					sumRecord.Payload[name] = float64(0)
+				}
+				if value.(float64) > sumRecord.Payload[name].(float64) {
+					sumRecord.Payload[name] = value
+				}
 			}
 		}
 		sumRecord.Tag = records[i].Tag
@@ -64,9 +68,18 @@ func calculateResults(ty string, prefix string, values metrics.TaggedValueSlice,
 	results = append(results, []*Result{
 		{ty, prefix, fmt.Sprintf("%.2f%s", avg, unit)},
 		{ty, prefix + "-jitter-sd", fmt.Sprintf("%.2f%%", jitter.Sd*100)},
-		{ty, prefix + "-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", jitter.PositiveMax.Value*100, jitter.PositiveMax.Tag)},
-		{ty, prefix + "-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", jitter.NegativeMax.Value*100, jitter.NegativeMax.Tag)},
 	}...)
+	if len(jitter.PositiveMax.Tag) > 0 {
+		results = append(results, &Result{ty, prefix + "-jitter-positive-max", fmt.Sprintf("%.2f%% in %s", jitter.PositiveMax.Value*100, jitter.PositiveMax.Tag)})
+	} else {
+		results = append(results, &Result{ty, prefix + "-jitter-positive-max", fmt.Sprintf("%.2f%%", jitter.PositiveMax.Value*100)})
+	}
+	if len(jitter.NegativeMax.Tag) > 0 {
+		results = append(results, &Result{ty, prefix + "-jitter-negative-max", fmt.Sprintf("%.2f%% in %s", jitter.NegativeMax.Value*100, jitter.NegativeMax.Tag)})
+	} else {
+		results = append(results, &Result{ty, prefix + "-jitter-negative-max", fmt.Sprintf("%.2f%%", jitter.NegativeMax.Value*100)})
+	}
+
 	if kNumber > 0 {
 		results = append(results, &Result{
 			"",

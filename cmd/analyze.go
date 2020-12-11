@@ -51,12 +51,16 @@ func newLogCommand() *cobra.Command {
 			is := make([]int64, 0)
 			var records []*workload.Record
 			var err error
-			for _, s := range strings.Split(intervals, ",") {
-				i, err := strconv.ParseInt(s, 10, 64)
-				if err != nil {
-					return errors.Trace(err)
+			if len(intervals) == 0 {
+				is = append(is, 1)
+			} else {
+				for _, s := range strings.Split(intervals, ",") {
+					i, err := strconv.ParseInt(s, 10, 64)
+					if err != nil {
+						return errors.Trace(err)
+					}
+					is = append(is, i)
 				}
-				is = append(is, i)
 			}
 			switch benchmark {
 			case "tpcc":
@@ -82,7 +86,7 @@ func newLogCommand() *cobra.Command {
 					}
 				}
 			case "sysbench":
-				records, _, err = workload.ParseSysbenchRecords(logPath)
+				records, err = workload.ParseSysbenchRecords(logPath)
 				if err != nil {
 					return err
 				}

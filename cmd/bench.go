@@ -234,7 +234,7 @@ func newSysbenchCommand() *cobra.Command {
 			if err != nil {
 				return errors.Trace(err)
 			}
-			results, _, err = b.Results()
+			results, summaryResults, err = b.Results()
 			if err != nil {
 				return errors.Trace(err)
 			}
