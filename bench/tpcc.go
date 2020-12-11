@@ -62,21 +62,24 @@ func EvalTpccRecords(records []*workload.Record, intervalSecs int, warmupSecs in
 	for t, rs := range recordsMap {
 		counts := make(metrics.TaggedValueSlice, len(rs))
 		avgLats := make(metrics.TaggedValueSlice, len(rs))
-		p95Lats := make(metrics.TaggedValueSlice, 0, len(rs))
-		p99Lats := make(metrics.TaggedValueSlice, 0, len(rs))
+		payloads := make(map[string]metrics.TaggedValueSlice)
 		for i, r := range rs {
 			counts[i] = metrics.WithTag(r.Count, r.Tag)
 			avgLats[i] = metrics.WithTag(r.AvgLatInMs, r.Tag)
-			if r.P95LatInMs > 0 {
-				p95Lats = append(p95Lats, metrics.WithTag(r.P95LatInMs, r.Tag))
-			}
-			if r.P99LatInMs > 0 {
-				p99Lats = append(p99Lats, metrics.WithTag(r.P99LatInMs, r.Tag))
+
+			for p, v := range r.Payload {
+				_, ok := payloads[p]
+				if !ok {
+					payloads[p] = make(metrics.TaggedValueSlice, 0, len(rs))
+				}
+				payloads[p] = append(payloads[p], metrics.WithTag(v.(float64), r.Tag))
 			}
 		}
 		results = append(results, calculateResults(t, "tps", counts, kNumber, percent, "")...)
 		results = append(results, calculateResults(t, "avg-lat", avgLats, kNumber, percent, "ms")...)
-		results = append(results, calculateResults(t, "p99-lat", p99Lats, kNumber, percent, "ms")...)
+		for p, vs := range payloads {
+			results = append(results, calculateResults(t, p, vs, kNumber, percent, "ms")...)
+		}
 	}
 	return results
 }
@@ -84,7 +87,7 @@ func EvalTpccRecords(records []*workload.Record, intervalSecs int, warmupSecs in
 func EvalTpccSummaryRecord(records []*workload.Record) []*Result {
 	results := make([]*Result, 0)
 	for _, item := range records {
-		tpm := item.Payload.(float64)
+		tpm := item.Payload["tpm"]
 		results = append(results, &Result{
 			Type:  item.Type,
 			Name:  "tpm",
