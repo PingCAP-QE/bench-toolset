@@ -35,9 +35,9 @@ See more details with `bench-toolset bench --help`.
 ### Analyze result
 ```
 # Analyze results of sysbench
-bench-toolset analyze --benchmark sysbench --log sysbench.log --interval 1,2 --warmup 10 --cut-tails 10 -k 2 --percent 10
+bench-toolset analyze log --benchmark sysbench --log sysbench.log --interval 1,2 --warmup 10 --cut-tail 10 -k 2 --percent 10
 # Analyze results of tpcc
-bench-toolset analyze --benchmark tpcc --log tpcc.log --interval 1,2 -k 2 --percent 10
+bench-toolset analyze log --benchmark tpcc --log tpcc.log --interval 1,2 -k 2 --percent 10
 ```
 
 See more details with `bench-toolset analyze --help`
