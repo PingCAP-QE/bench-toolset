@@ -23,7 +23,7 @@ FROM golang:1.14 as brbuilder
 ENV GO111MODULE=on
 RUN mkdir -p /go/src/github.com/pingcap/br
 WORKDIR /go/src/github.com/pingcap/br
-RUN git clone https://github.com/pingcap/br.git .
+RUN git clone -b release-5.0 https://github.com/pingcap/br.git .
 RUN make build
 
 FROM golang:1.14
