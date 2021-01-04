@@ -28,7 +28,7 @@ RUN make build
 
 FROM golang:1.14
 RUN curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.deb.sh | bash
-RUN apt -y install sysbench
+RUN apt -y install sysbench default-mysql-client
 RUN mkdir -p /ycsb/workloads
 COPY --from=builder /src/bin/* /bin/
 COPY --from=tpcbuilder /go/src/github.com/pingcap/go-tpc/bin/* /bin/
