@@ -9,7 +9,7 @@ FROM golang:1.14 as tpcbuilder
 ENV GO111MODULE=on
 RUN mkdir -p /go/src/github.com/pingcap/go-tpc
 WORKDIR /go/src/github.com/pingcap/go-tpc
-RUN git clone https://github.com/pingcap/go-tpc.git .
+RUN git clone -b show_explain_analyze https://github.com/pingcap/go-tpc.git .
 RUN make build
 
 FROM golang:1.14 as ycsbbuilder
