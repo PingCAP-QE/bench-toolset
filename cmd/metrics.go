@@ -32,6 +32,7 @@ func NewMetricsCommand() *cobra.Command {
 	}
 
 	command.AddCommand(newJitterCommand())
+	command.AddCommand(newAvgCommand())
 
 	return command
 }
@@ -51,6 +52,30 @@ func newJitterCommand() *cobra.Command {
 			}
 
 			fmt.Printf("jitter-sd: %f, positive-jitter-max: %f, negative-jitter-max: %f\n", result.Sd, result.PositiveMax.Value, result.NegativeMax.Value)
+
+			return nil
+		},
+	}
+
+	return command
+}
+
+func newAvgCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:     "average",
+		Aliases: []string{"avg"},
+		Short:   "Calculate average for metrics",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			source, err := metrics.NewPrometheus(address)
+			if err != nil {
+				return err
+			}
+			avg, err := metrics.NewMetrics(source, time.UnixMilli(begin), time.UnixMilli(end)).Average(query)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("average=%v\n", avg)
 
 			return nil
 		},
