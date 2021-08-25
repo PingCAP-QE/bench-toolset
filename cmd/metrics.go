@@ -11,14 +11,16 @@ import (
 var (
 	address string
 	query   string
-
-	interval time.Duration
+	begin   int64
+	end     int64
 )
 
 func init() {
 	metricsCmd := NewMetricsCommand()
 	metricsCmd.PersistentFlags().StringVarP(&address, "address", "u", "", "The host of Prometheus")
 	metricsCmd.PersistentFlags().StringVarP(&query, "query", "q", "", "Query of metrics")
+	metricsCmd.PersistentFlags().Int64VarP(&begin, "begin", "b", time.Now().Unix()-60, "Start of statistics")
+	metricsCmd.PersistentFlags().Int64VarP(&end, "end", "e", time.Now().Unix(), "End of statistics")
 
 	rootCmd.AddCommand(metricsCmd)
 }
@@ -43,8 +45,7 @@ func newJitterCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			now := time.Now()
-			result, err := metrics.NewMetrics(source, now, now.Add(interval)).Jitter(query)
+			result, err := metrics.NewMetrics(source, time.Unix(begin, 0), time.Unix(end, 0)).Jitter(query)
 			if err != nil {
 				return err
 			}
@@ -55,6 +56,5 @@ func newJitterCommand() *cobra.Command {
 		},
 	}
 
-	command.PersistentFlags().DurationVar(&interval, "time", time.Minute*10, "Time of fetching metrics")
 	return command
 }
